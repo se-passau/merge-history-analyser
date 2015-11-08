@@ -18,12 +18,12 @@ import java.util.List;
 /**
  * Created by martin on 30.09.15.
  */
-public class myTest {
+public class mergeHistoryAnalyer {
 
     static Repository localRepo;
     static Git git;
 
-    static String USAGE = "Usage: myTest [local Repo] [remote Repo]\n";
+    static String USAGE = "Usage: mergeHistoryAnalyer [local Repo] [remote Repo]\n";
 
     public static void main(String[] args) throws IOException, GitAPIException {
 
