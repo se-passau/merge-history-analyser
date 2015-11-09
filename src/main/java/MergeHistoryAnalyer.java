@@ -9,7 +9,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,28 +18,33 @@ import java.util.List;
 /**
  * Created by martin on 30.09.15.
  */
-public class mergeHistoryAnalyer {
+public class MergeHistoryAnalyer {
 
-    static Repository localRepo;
-    static Git git;
-
-    static String USAGE = "Usage: mergeHistoryAnalyer [local Repo] [remote Repo]\n";
-
-    public static void main(String[] args) throws IOException, GitAPIException {
-
-        if(args.length != 2) {
-            System.err.println(USAGE);
-        } else {
-            init(args[0], args[1]);
-
-            List<RevCommit> merges = getMerges();
+    String localPath;
+    String remotePath;
+    Repository localRepo;
+    Git git;
 
 
+
+    public MergeHistoryAnalyer(String localPath, String remotePath) throws IOException, GitAPIException {
+
+        this.localPath = localPath;
+        this.remotePath = remotePath;
+        //init
+        localRepo = new FileRepository(localPath + "/.git");
+        git = new Git(localRepo);
+
+        List<RevCommit> merges = getMerges();
+        List<MergeResult> mergeResults = getMergeResults(merges);
+
+        for (int i = 0; i < mergeResults.size(); i++) {
+            if (mergeResults.get(i).getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
+                System.out.println(mergeResults.get(i).getConflicts().toString());
+            } else {
+                build();
+            }
         }
-
-
-
-
 
 
         //Out Status, Parents
@@ -76,7 +81,7 @@ public class mergeHistoryAnalyer {
 
     }
 
-    public static List<RevCommit> getMerges() throws GitAPIException {
+    public List<RevCommit> getMerges() throws GitAPIException {
         Iterable<RevCommit> log = git.log().call();
         Iterator<RevCommit> it = log.iterator();
         List<RevCommit> merges = new LinkedList<RevCommit>();
@@ -89,27 +94,24 @@ public class mergeHistoryAnalyer {
         return merges;
     }
 
-    public static List<MergeResult> getMergeResults(List<RevCommit> merges) throws GitAPIException {
+    public List<MergeResult> getMergeResults(List<RevCommit> merges) throws GitAPIException {
 
         List<MergeResult> mergeResults = new LinkedList<MergeResult>();
 
         for (int i = 0; i < merges.size(); i++) {
+            System.out.println("Do " + i + " merge");
             git.checkout().setName(merges.get(i).getParents()[0].getName()).call();
             MergeResult res = git.merge().include(merges.get(i).getParents()[1]).call();
             mergeResults.add(res);
+            System.out.println("Finish " + i + " merge");
         }
 
-        /*
-        if (res.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
-            System.out.println(res.getConflicts().toString());
-            // inform the user he has to handle the conflicts
-        }
-        */
+
 
         return mergeResults;
     }
 
-    public static List<String> getTags() throws GitAPIException {
+    public List<String> getTags() throws GitAPIException {
         List<Ref> tagList = git.tagList().call();
         List<String> tagNames = new ArrayList<String>(tagList.size());
         for (int i = 0; i < tagList.size(); i++) {
@@ -118,14 +120,12 @@ public class mergeHistoryAnalyer {
         return tagNames;
     }
 
-    public static void init(String localPath, String remotePath) throws IOException {
+    public void init(String localPath, String remotePath) throws IOException {
         //localPath = "/home/martin/hiwi_job/projekte/voldemort";
         //remotePath = "https://github.com/voldemort/voldemort.git";
-        localRepo = new FileRepository(localPath + "/.git");
-        git = new Git(localRepo);
     }
 
-    public static boolean build () {
+    public boolean build () {
         try {
             Process p2 = Runtime.getRuntime().exec("./build.sh");
             p2.waitFor();
@@ -140,5 +140,37 @@ public class mergeHistoryAnalyer {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public void writeFile(String filename, String text) {
+        Writer writer = null;
+
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(filename), "utf-8"));
+            writer.write(text);
+        } catch (IOException ex) {
+            // report
+        } finally {
+            try {writer.close();} catch (Exception ex) {/*ignore*/}
+        }
+    }
+
+    public static void main(String[] args) {
+        String USAGE = "Usage: MergeHistoryAnalyer [local Repo] [remote Repo]\n";
+
+        if(args.length != 2) {
+            System.err.println(USAGE);
+        } else {
+            try {
+                MergeHistoryAnalyer analyer = new MergeHistoryAnalyer(args[0], args[1]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
+        }
+
+
     }
 }
