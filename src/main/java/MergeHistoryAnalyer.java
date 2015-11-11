@@ -38,31 +38,53 @@ public class MergeHistoryAnalyer {
     }
 
     public void analyse() {
-        List<RevCommit> mergeScenarios = null;
+
         try {
-            mergeScenarios = getMerges();
+            git.checkout().setName("master").call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < mergeScenarios.size(); i++) {
-            System.out.println("Analyse " + mergeScenarios.get(i).getName());
+        List<RevCommit> mergeScenarios = null;
+        try {
+            mergeScenarios = getMergeScenarios();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        analyse(mergeScenarios.size());
+    }
+
+    public void analyse(int numberOfAnalysis) {
+
+        try {
+            git.checkout().setName("master").call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+
+        List<RevCommit> mergeScenarios = null;
+        try {
+            mergeScenarios = getMergeScenarios();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+
+        for (int i = 0; i < numberOfAnalysis; i++) {
+            System.out.println("Analyse " + mergeScenarios.get(i));
             try {
                 //Merge
                 MergeResult mergeResult = getMergeResult(mergeScenarios.get(i));
-                if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)) {
-                    System.out.println("Merge successful");
-                } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
+
+                if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
                     System.out.println("Merge conflicted");
                     System.out.println(mergeResult.getConflicts().toString());
                     break;
                 } else {
-                    System.out.println("Other merge problem");
-                    break;
+                    System.out.println("Merge successful");
                 }
 
                 //Build
-                String buildMessage = build();
+                String buildMessage = build("./buildVoldemort.sh");
                 if (buildMessage.contains("BUILD SUCCESSFUL")) {
                     System.out.println("Build successful");
                 } else {
@@ -87,7 +109,7 @@ public class MergeHistoryAnalyer {
         }
     }
 
-    public List<RevCommit> getMerges() throws GitAPIException {
+    public List<RevCommit> getMergeScenarios() throws GitAPIException {
         Iterable<RevCommit> log = git.log().call();
         Iterator<RevCommit> it = log.iterator();
         List<RevCommit> merges = new LinkedList<RevCommit>();
@@ -117,8 +139,8 @@ public class MergeHistoryAnalyer {
         return tagNames;
     }
 
-    public String build() throws IOException, InterruptedException {
-        Process p2 = Runtime.getRuntime().exec("./build.sh");
+    public String build(String buildCommand) throws IOException, InterruptedException {
+        Process p2 = Runtime.getRuntime().exec(buildCommand);
         p2.waitFor();
 
         String message = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
@@ -149,13 +171,18 @@ public class MergeHistoryAnalyer {
             System.err.println(USAGE);
         } else {
             MergeHistoryAnalyer analyer = new MergeHistoryAnalyer(args[0], args[1]);
-            analyer.analyse();
+            analyer.analyse(1);
+
+            /*
             try {
-                analyer.getMerges();
+                List<RevCommit> merges = analyer.getMergeScenarios();
+                System.out.println(merges.get(0));
+                System.out.println(merges.get(0).getParents()[0]);
+                System.out.println(merges.get(0).getParents()[1]);
             } catch (GitAPIException e) {
                 e.printStackTrace();
             }
-
+            */
 
         }
 
