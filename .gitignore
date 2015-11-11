@@ -1,1 +1,4 @@
-*.class
+build
+.class
+.idea
+*.iml
