@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Created by martin on 30.09.15.
  */
-public class MergeHistoryAnalyer {
+public class MergeHistoryAnalyser {
 
     String localPath;
     String remotePath;
@@ -24,7 +24,7 @@ public class MergeHistoryAnalyer {
     Git git;
 
 
-    public MergeHistoryAnalyer(String localPath, String remotePath) {
+    public MergeHistoryAnalyser(String localPath, String remotePath) {
 
         this.localPath = localPath;
         this.remotePath = remotePath;
@@ -170,7 +170,7 @@ public class MergeHistoryAnalyer {
         if (args.length != 2) {
             System.err.println(USAGE);
         } else {
-            MergeHistoryAnalyer analyer = new MergeHistoryAnalyer(args[0], args[1]);
+            MergeHistoryAnalyser analyer = new MergeHistoryAnalyser(args[0], args[1]);
             analyer.analyse(1);
 
             /*
