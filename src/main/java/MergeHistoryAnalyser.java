@@ -8,10 +8,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by martin on 30.09.15.
@@ -22,7 +19,6 @@ public class MergeHistoryAnalyser {
     String remotePath;
     Repository localRepo;
     Git git;
-
 
     public MergeHistoryAnalyser(String localPath, String remotePath) {
 
@@ -55,6 +51,7 @@ public class MergeHistoryAnalyser {
     }
 
     public void analyse(int numberOfAnalysis) {
+        StringBuffer logMessage = new StringBuffer();
 
         try {
             git.checkout().setName("master").call();
@@ -70,42 +67,43 @@ public class MergeHistoryAnalyser {
         }
 
         for (int i = 0; i < numberOfAnalysis; i++) {
-            System.out.println("Analyse " + mergeScenarios.get(i));
+            logMessage.append("Analyse " + mergeScenarios.get(i) + " " + new Date((long) mergeScenarios.get(i).getCommitTime() * 1000) + "\n");
             try {
                 //Merge
                 MergeResult mergeResult = getMergeResult(mergeScenarios.get(i));
 
                 if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-                    System.out.println("Merge conflicted");
-                    System.out.println(mergeResult.getConflicts().toString());
+                    logMessage.append("Merge conflicted\n");
+                    logMessage.append(mergeResult.getConflicts().toString());
                     break;
                 } else {
-                    System.out.println("Merge successful");
+                    logMessage.append("Merge successful\n");
                 }
 
                 //Build
                 String buildMessage = build("./buildVoldemort.sh");
                 if (buildMessage.contains("BUILD SUCCESSFUL")) {
-                    System.out.println("Build successful");
+                    logMessage.append("Build successful\n");
                 } else {
-                    System.out.println("Other build problem");
+                    logMessage.append("Other build problem\n");
                 }
 
                 //Tests
 
             } catch (NotMergedException e) {
-                System.out.println("Merge, NotMergedException");
+                logMessage.append("Merge, NotMergedException\n");
             } catch (GitAPIException e) {
-                System.out.println("Merge, GitAPIException");
+                logMessage.append("Merge, GitAPIException\n");
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                System.out.println("Build exception");
+                logMessage.append("Build exception\n");
                 e.printStackTrace();
             } catch (IOException e) {
-                System.out.println("Build exception");
+                logMessage.append("Build exception\n");
                 e.printStackTrace();
             }
-            System.out.println();
+            logMessage.append("\n");
+            writeFile("log", logMessage.toString());
         }
     }
 
@@ -171,19 +169,8 @@ public class MergeHistoryAnalyser {
             System.err.println(USAGE);
         } else {
             MergeHistoryAnalyser analyer = new MergeHistoryAnalyser(args[0], args[1]);
-            analyer.analyse(1);
 
-            /*
-            try {
-                List<RevCommit> merges = analyer.getMergeScenarios();
-                System.out.println(merges.get(0));
-                System.out.println(merges.get(0).getParents()[0]);
-                System.out.println(merges.get(0).getParents()[1]);
-            } catch (GitAPIException e) {
-                e.printStackTrace();
-            }
-            */
-
+            analyer.analyse(2);
         }
 
 

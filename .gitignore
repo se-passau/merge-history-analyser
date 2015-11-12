@@ -1,5 +1,13 @@
+#Builds
 build
+.class
+
+#Intellij
 .idea
-.gradle
-*.class
 *.iml
+
+#Gradle
+.gradle
+
+
+log
