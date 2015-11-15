@@ -14,4 +14,5 @@ dependencies {
     compile 'org.eclipse.jgit:org.eclipse.jgit.archive:4.0.1.201506240215-r'
     compile 'commons-io:commons-io:2.4'
     compile 'org.slf4j:slf4j-simple:1.7.12'
+    compile 'com.thoughtworks.xstream:xstream:1.4.8'
 }

@@ -1,29 +1,47 @@
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import util.Pair;
-import util.UTIL;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by martin on 14.11.15.
  */
 public class Project {
+
+    @XStreamAsAttribute
+    String name;
+
+    @XStreamOmitField
     String localPath;
+
+    @XStreamAsAttribute
     String remotePath;
+
+    @XStreamOmitField
     Repository localRepo;
+
+    @XStreamOmitField
     Git git;
+
+    @XStreamImplicit
     List<MergeScenario> mergeScenarios;
+
+    @XStreamAsAttribute
     String buildCommand;
 
     public Project(String localPath, String remotePath, String buildCommand) {
+        name = localPath.substring(localPath.lastIndexOf("/") + 1);
         this.localPath = localPath;
         this.remotePath = remotePath;
         this.buildCommand = buildCommand;
@@ -73,14 +91,17 @@ public class Project {
 
         Iterator<RevCommit> it = gitMerges.iterator();
 
-        while (it.hasNext()) {
+        while (it.hasNext() && numberOfAnalysis > 0) {
+            numberOfAnalysis--;
+
             RevCommit commit = it.next();
-            MergeScenario mergeScenario = new MergeScenario(commit);
+            MergeScenario mergeScenario = new MergeScenario(commit.getName(), commit.getParents()[0].getName(), commit.getParents()[1].getName());
             mergeScenarios.add(mergeScenario);
             try {
                 //Merge
                 MergeResult mergeResult = getMergeResult(commit);
-                mergeScenario.getMerge().setMergeResult(mergeResult);
+
+                mergeScenario.getMerge().setStatus(mergeResult.getMergeStatus().name());
 
                 if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
                     break;
@@ -88,9 +109,11 @@ public class Project {
                 }
 
                 //Build
-                Pair<String, Double> pair = build();
-                mergeScenario.getBuild().setBuildMessage(pair.getFst());
-                mergeScenario.getBuild().setRuntime(pair.getScd());
+                String buildMessage = build();
+                String state = getStateOutOfBuild(buildMessage);
+                double runtime = getRuntimeOutOfBuild(buildMessage);
+                mergeScenario.getBuild().setState(state);
+                mergeScenario.getBuild().setRuntime(runtime);
 
                 //Tests
 
@@ -103,7 +126,6 @@ public class Project {
             } catch (IOException e) {
                 mergeScenario.getBuild().addException(e);
             }
-            UTIL.writeFile(toString());
         }
     }
 
@@ -128,15 +150,28 @@ public class Project {
         return mergeResult;
     }
 
-    public Pair<String, Double> build() throws IOException, InterruptedException {
+    public String build() throws IOException, InterruptedException {
         double startTime = System.currentTimeMillis();
         Process p2 = Runtime.getRuntime().exec(buildCommand);
         p2.waitFor();
-        double runtime = System.currentTimeMillis() - startTime;
 
         String message = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
 
-        return new Pair(message, runtime);
+        return message;
+    }
+
+    public String getStateOutOfBuild(String buildMessage) {
+        if (buildMessage.contains("BUILD SUCCESSFUL")) {
+            return "PASSED";
+        } else {
+            return "FAILED";
+        }
+    }
+
+    public Double getRuntimeOutOfBuild(String buildMessage) {
+        String rawTime = buildMessage.substring(buildMessage.lastIndexOf("Total time: ") + 12);
+        double time = Double.parseDouble(rawTime.split(" ")[0]);
+        return time;
     }
 
     public String toString() {
@@ -148,5 +183,4 @@ public class Project {
         }
         return builder.toString();
     }
-
 }

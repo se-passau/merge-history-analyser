@@ -1,3 +1,4 @@
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -9,17 +10,19 @@ import java.io.IOException;
  * Created by martin on 14.11.15.
  */
 public class MergeScenario {
-    RevCommit mergeCommit;
-    RevCommit parent1;
-    RevCommit parent2;
+    String mergeCommit;
+    String parent1;
+    String parent2;
     Merge merge;
     Build build;
 
 
-    public MergeScenario(RevCommit mergeCommit) {
+    public MergeScenario(String mergeCommit, String parent1, String parent2) {
         this.mergeCommit = mergeCommit;
-        this.parent1 = mergeCommit.getParents()[0];
-        this.parent2 = mergeCommit.getParents()[1];
+        this.parent1 = parent1;
+        this.parent2 = parent2;
+        merge = new Merge();
+        build = new Build();
     }
 
     public Merge getMerge() {
@@ -40,10 +43,12 @@ public class MergeScenario {
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("MergeCommit: " + mergeCommit.getName() + "\n");
-        builder.append("Parent: " + parent1.getName() + "\n");
-        builder.append("Parent: " + parent2.getName() + "\n");
+        builder.append("MergeCommit: " + mergeCommit + "\n");
+        builder.append("Parent: " + parent1 + "\n");
+        builder.append("Parent: " + parent2 + "\n");
         builder.append(merge);
         builder.append(build);
+
+        return builder.toString();
     }
 }

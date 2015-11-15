@@ -8,14 +8,13 @@ import java.util.List;
  * Created by martin on 14.11.15.
  */
 public class Merge {
-    MergeResult mergeResult;
+
     String status;
     List<Exception> exceptions;
 
-    public Merge(MergeResult mergeResult) {
-        this.mergeResult = mergeResult;
+    public Merge() {
         exceptions = new LinkedList<Exception>();
-        Iterator conflictIterator = mergeResult.getConflicts().keySet().iterator();
+        //Iterator conflictIterator = mergeResult.getConflicts().keySet().iterator();
 
         /*
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
@@ -31,15 +30,23 @@ public class Merge {
         exceptions.add(e);
     }
 
-    public MergeResult getMergeResult() {
-        return mergeResult;
+    public String getStatus() {
+        return status;
     }
 
-    public void setMergeResult(MergeResult mergeResult) {
-        this.mergeResult = mergeResult;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("Merge \n");
+        builder.append("Status: " + status + "\n");
+        builder.append("Exceptions: \n");
+        Iterator<Exception> iterator = exceptions.iterator();
+        while (iterator.hasNext()) {
+            builder.append(iterator.next() + "\n");
+        }
+        return builder.toString();
     }
 }
