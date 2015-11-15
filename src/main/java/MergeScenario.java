@@ -1,24 +1,23 @@
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.revwalk.RevCommit;
-
-import java.io.IOException;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Created by martin on 14.11.15.
  */
 public class MergeScenario {
-    String mergeCommit;
+    String commit;
+
+    @XStreamAlias("parent")
     String parent1;
+
+    @XStreamAlias("parent")
     String parent2;
+
     Merge merge;
     Build build;
 
 
-    public MergeScenario(String mergeCommit, String parent1, String parent2) {
-        this.mergeCommit = mergeCommit;
+    public MergeScenario(String commit, String parent1, String parent2) {
+        this.commit = commit;
         this.parent1 = parent1;
         this.parent2 = parent2;
         merge = new Merge();
@@ -43,7 +42,7 @@ public class MergeScenario {
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("MergeCommit: " + mergeCommit + "\n");
+        builder.append("MergeCommit: " + commit + "\n");
         builder.append("Parent: " + parent1 + "\n");
         builder.append("Parent: " + parent2 + "\n");
         builder.append(merge);

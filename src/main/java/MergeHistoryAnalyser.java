@@ -37,7 +37,7 @@ public class MergeHistoryAnalyser {
 
         Project project = new Project("/home/martin/hiwi_job/projekte/voldemort", "https://github.com/voldemort/voldemort.git", "./buildVoldemort.sh");
 
-        project.analyse(1);
+        project.analyse(3);
 
         XStream xstream = new XStream(new StaxDriver());
         xstream.processAnnotations(Project.class);
@@ -45,7 +45,7 @@ public class MergeHistoryAnalyser {
         //Object to XML Conversion
         String xml = xstream.toXML(project);
         System.out.println(formatXml(xml));
-        UTIL.writeFile("xml", xml);
+        UTIL.writeFile("log", xml);
 
     }
 
