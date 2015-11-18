@@ -7,13 +7,12 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by martin on 14.11.15.
@@ -57,79 +56,157 @@ public class Project {
         }
     }
 
+    public void analyse(List<String> commitIDs) {
+        //Checkout master
+        checkoutMaster();
+
+        List<RevCommit> mergeCommits = null;
+        try {
+            mergeCommits = getMergeScenarios();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        if (mergeCommits != null) {
+            List<RevCommit> mergeCommitsToBeAnalysed = new LinkedList<RevCommit>();
+            for (RevCommit commit : mergeCommits) {
+                if (commitIDs.contains(commit.getId().name())) {
+                    mergeCommitsToBeAnalysed.add(commit);
+                }
+            }
+
+            this.mergeScenarios = analyseMergeScenarios(mergeCommitsToBeAnalysed);
+        }
+        checkoutMaster();
+    }
+
     public void analyse() {
+        checkoutMaster();
 
+        List<RevCommit> mergeCommits = null;
         try {
-            git.checkout().setName("master").call();
+            mergeCommits = getMergeScenarios();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-
-        List<RevCommit> mergeScenarios = null;
-        try {
-            mergeScenarios = getMergeScenarios();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
+        if (mergeCommits != null) {
+            this.mergeScenarios = analyseMergeScenarios(mergeCommits);
         }
-        analyse(mergeScenarios.size());
+        checkoutMaster();
     }
 
     public void analyse(int numberOfAnalysis) {
+        checkoutMaster();
 
-        //Checkout master
+        List<RevCommit> mergeCommits = null;
+        try {
+            mergeCommits = getMergeScenarios();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+
+        if (mergeCommits != null) {
+            System.out.println(mergeCommits.size() + " merges found");
+
+
+            Collections.reverse(mergeCommits);
+
+            this.mergeScenarios = analyseMergeScenarios(mergeCommits.subList(0, numberOfAnalysis));
+
+        } else {
+            System.out.println("No merges found");
+        }
+        checkoutMaster();
+    }
+
+    public List<MergeScenario> analyseMergeScenarios(List<RevCommit> commits) {
+        System.out.println("Analysing " + commits.size());
+        List<MergeScenario> mergeScenarios = new ArrayList<MergeScenario>(commits.size());
+        for (int i = 0; i < commits.size(); i++) {
+            RevCommit commit = commits.get(i);
+            MergeScenario mergeScenario = analyseMergeScenario(commit);
+            mergeScenarios.add(mergeScenario);
+
+            System.out.println("Finished " + (i + 1) + "/" + commits.size());
+        }
+        return mergeScenarios;
+    }
+
+    public MergeScenario analyseMergeScenario(RevCommit commit) {
+        MergeScenario mergeScenario = new MergeScenario(
+                commit.getName(), commit.getParents()[0].getName(), commit.getParents()[1].getName());
+        try {
+            //Merge
+            MergeResult mergeResult = getMergeResult(commit);
+
+            mergeScenario.getMerge().setStatus(mergeResult.getMergeStatus().name());
+
+
+            if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
+                throw new MyMergeConflictingException(mergeResult);
+            }
+
+            //Build
+            String buildMessage = build();
+            if (buildMessage.isEmpty()) {
+                throw new MyNotBuildException();
+            }
+            String state = getStateOutOfBuild(buildMessage);
+            double runtime = getRuntimeOutOfBuild(buildMessage);
+            mergeScenario.getBuild().setState(state);
+            mergeScenario.getBuild().setRuntime(runtime);
+
+            //Tests
+
+
+        } catch (NotMergedException e) {
+            mergeScenario.getMerge().addException(e);
+        } catch (GitAPIException e) {
+            mergeScenario.getMerge().addException(e);
+        } catch (InterruptedException e) {
+            mergeScenario.getBuild().addException(e);
+        } catch (IOException e) {
+            mergeScenario.getBuild().addException(e);
+        } catch (MyMergeConflictingException e) {
+            Map<String, int[][]> conflicts = e.getMergeResult().getConflicts();
+            if (conflicts == null) {
+                System.out.println("conflicts null");
+            } else if (conflicts.isEmpty()) {
+                System.out.println("conflicts empty");
+            } else {
+                for (Object string : conflicts.keySet()) {
+                    System.out.println(string);
+                }
+            }
+        } catch (MyNotBuildException e) {
+            mergeScenario.getBuild().setState("not build");
+        }
+
+        return mergeScenario;
+    }
+
+    public class MyMergeConflictingException extends Exception {
+        MergeResult mergeResult;
+
+        public MyMergeConflictingException(MergeResult mergeResult) {
+            this.mergeResult = mergeResult;
+        }
+
+        public MergeResult getMergeResult() {
+            return mergeResult;
+        }
+    }
+
+    public class MyNotBuildException extends Exception {
+    }
+
+    public void checkoutMaster() {
         try {
             git.checkout().setName("master").call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-
-
-        List<RevCommit> gitMerges = null;
-        try {
-            gitMerges = getMergeScenarios();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        }
-
-        Iterator<RevCommit> it = gitMerges.iterator();
-
-        while (it.hasNext() && numberOfAnalysis > 0) {
-            numberOfAnalysis--;
-
-            RevCommit commit = it.next();
-            MergeScenario mergeScenario = new MergeScenario(commit.getName(), commit.getParents()[0].getName(), commit.getParents()[1].getName());
-            mergeScenarios.add(mergeScenario);
-            try {
-                //Merge
-                MergeResult mergeResult = getMergeResult(commit);
-
-                mergeScenario.getMerge().setStatus(mergeResult.getMergeStatus().name());
-
-                if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-                    break;
-                } else {
-                }
-
-                //Build
-                String buildMessage = build();
-                String state = getStateOutOfBuild(buildMessage);
-                double runtime = getRuntimeOutOfBuild(buildMessage);
-                mergeScenario.getBuild().setState(state);
-                mergeScenario.getBuild().setRuntime(runtime);
-
-                //Tests
-
-            } catch (NotMergedException e) {
-                mergeScenario.getMerge().addException(e);
-            } catch (GitAPIException e) {
-                mergeScenario.getMerge().addException(e);
-            } catch (InterruptedException e) {
-                mergeScenario.getBuild().addException(e);
-            } catch (IOException e) {
-                mergeScenario.getBuild().addException(e);
-            }
-        }
     }
+
 
     public List<RevCommit> getMergeScenarios() throws GitAPIException {
         Iterable<RevCommit> log = git.log().call();
@@ -153,7 +230,6 @@ public class Project {
     }
 
     public String build() throws IOException, InterruptedException {
-        double startTime = System.currentTimeMillis();
         Process p2 = Runtime.getRuntime().exec(buildCommand);
         p2.waitFor();
 
@@ -172,15 +248,13 @@ public class Project {
 
     public Double getRuntimeOutOfBuild(String buildMessage) {
         String rawTime = buildMessage.substring(buildMessage.lastIndexOf("Total time: ") + 12);
-        double time = Double.parseDouble(rawTime.split(" ")[0]);
-        return time;
+        return Double.parseDouble(rawTime.split(" ")[0]);
     }
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        Iterator iterator = mergeScenarios.iterator();
-        while (iterator.hasNext()) {
-            builder.append(iterator.next());
+        for (Object mergeScenario : mergeScenarios) {
+            builder.append(mergeScenario);
             builder.append("\n");
         }
         return builder.toString();
