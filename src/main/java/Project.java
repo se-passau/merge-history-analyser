@@ -117,7 +117,7 @@ public class Project {
     }
 
     public List<MergeScenario> analyseMergeScenarios(List<RevCommit> commits) {
-        System.out.println("Analysing " + commits.size());
+        System.out.println("Analysing " + commits.size() + " merges");
         List<MergeScenario> mergeScenarios = new ArrayList<MergeScenario>(commits.size());
         for (int i = 0; i < commits.size(); i++) {
             RevCommit commit = commits.get(i);
