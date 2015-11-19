@@ -7,7 +7,6 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -57,7 +56,6 @@ public class Project {
     }
 
     public void analyse(List<String> commitIDs) {
-        //Checkout master
         checkoutMaster();
 
         List<RevCommit> mergeCommits = null;
@@ -108,7 +106,7 @@ public class Project {
             System.out.println(mergeCommits.size() + " merges found");
 
 
-            Collections.reverse(mergeCommits);
+            //Collections.reverse(mergeCommits);
 
             this.mergeScenarios = analyseMergeScenarios(mergeCommits.subList(0, numberOfAnalysis));
 
@@ -140,9 +138,8 @@ public class Project {
 
             mergeScenario.getMerge().setStatus(mergeResult.getMergeStatus().name());
 
-
             if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-                throw new MyMergeConflictingException(mergeResult);
+                throw new MyMergeConflictException(mergeResult);
             }
 
             //Build
@@ -166,7 +163,7 @@ public class Project {
             mergeScenario.getBuild().addException(e);
         } catch (IOException e) {
             mergeScenario.getBuild().addException(e);
-        } catch (MyMergeConflictingException e) {
+        } catch (MyMergeConflictException e) {
             Map<String, int[][]> conflicts = e.getMergeResult().getConflicts();
             if (conflicts == null) {
                 System.out.println("conflicts null");
@@ -184,10 +181,10 @@ public class Project {
         return mergeScenario;
     }
 
-    public class MyMergeConflictingException extends Exception {
+    public class MyMergeConflictException extends Exception {
         MergeResult mergeResult;
 
-        public MyMergeConflictingException(MergeResult mergeResult) {
+        public MyMergeConflictException(MergeResult mergeResult) {
             this.mergeResult = mergeResult;
         }
 
@@ -198,15 +195,6 @@ public class Project {
 
     public class MyNotBuildException extends Exception {
     }
-
-    public void checkoutMaster() {
-        try {
-            git.checkout().setName("master").call();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public List<RevCommit> getMergeScenarios() throws GitAPIException {
         Iterable<RevCommit> log = git.log().call();
@@ -249,6 +237,15 @@ public class Project {
     public Double getRuntimeOutOfBuild(String buildMessage) {
         String rawTime = buildMessage.substring(buildMessage.lastIndexOf("Total time: ") + 12);
         return Double.parseDouble(rawTime.split(" ")[0]);
+    }
+
+    public void checkoutMaster() {
+        try {
+            //git.reset().call();
+            git.checkout().setForce(true).setName("master").call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
     }
 
     public String toString() {
