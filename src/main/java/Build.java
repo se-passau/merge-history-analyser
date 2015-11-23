@@ -15,14 +15,7 @@ public class Build {
     @XStreamAsAttribute
     double runtime;
 
-    List<Exception> exceptions;
-
     public Build() {
-        exceptions = new LinkedList<Exception>();
-    }
-
-    public void addException(Exception e) {
-        exceptions.add(e);
     }
 
     public double getRuntime() {
@@ -47,10 +40,6 @@ public class Build {
         builder.append("Status: " + state + "\n");
         builder.append("Runtime: " + runtime + "\n");
         builder.append("Exceptions: \n");
-        Iterator<Exception> iterator = exceptions.iterator();
-        while (iterator.hasNext()) {
-            builder.append(iterator.next() + "\n");
-        }
         return builder.toString();
     }
 

@@ -4,8 +4,8 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -55,28 +55,9 @@ public class Project {
         }
     }
 
-    public void analyse(List<String> commitIDs) {
-        checkoutMaster();
-
-        List<RevCommit> mergeCommits = null;
-        try {
-            mergeCommits = getMergeScenarios();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        }
-        if (mergeCommits != null) {
-            List<RevCommit> mergeCommitsToBeAnalysed = new LinkedList<RevCommit>();
-            for (RevCommit commit : mergeCommits) {
-                if (commitIDs.contains(commit.getId().name())) {
-                    mergeCommitsToBeAnalysed.add(commit);
-                }
-            }
-
-            this.mergeScenarios = analyseMergeScenarios(mergeCommitsToBeAnalysed);
-        }
-        checkoutMaster();
-    }
-
+    /**
+     * Analyses all merge commits.
+     */
     public void analyse() {
         checkoutMaster();
 
@@ -92,7 +73,38 @@ public class Project {
         checkoutMaster();
     }
 
-    public void analyse(int numberOfAnalysis) {
+    /**
+     * Analyses commites with given commit IDs.
+     * @param commitIDs commit IDs of the commits which shall be analysed
+     */
+    public void analyse(List<String> commitIDs) {
+        checkoutMaster();
+
+        List<RevCommit> mergeCommits = null;
+        try {
+            mergeCommits = getMergeScenarios();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        if (mergeCommits != null) {
+            List<RevCommit> mergeCommitsToBeAnalysed = new LinkedList<>();
+            for (RevCommit commit : mergeCommits) {
+                if (commitIDs.contains(commit.getId().name())) {
+                    mergeCommitsToBeAnalysed.add(commit);
+                }
+            }
+            this.mergeScenarios = analyseMergeScenarios(mergeCommitsToBeAnalysed);
+        }
+        checkoutMaster();
+    }
+
+    /**
+     * Analyses the first {@param numberOfAnalysis} commits
+     *
+     * @param start index to start with
+     * @param end index to end with
+     */
+    public void analyseFromTo(int start, int end) {
         checkoutMaster();
 
         List<RevCommit> mergeCommits = null;
@@ -104,21 +116,42 @@ public class Project {
 
         if (mergeCommits != null) {
             System.out.println(mergeCommits.size() + " merges found");
-
-
             //Collections.reverse(mergeCommits);
-
-            this.mergeScenarios = analyseMergeScenarios(mergeCommits.subList(0, numberOfAnalysis));
-
+            this.mergeScenarios = analyseMergeScenarios(mergeCommits.subList(start, end));
         } else {
             System.out.println("No merges found");
         }
         checkoutMaster();
     }
 
+    /**
+     * Return the index of a commit in the list of all merge commits.
+     * @param commitID ID of commit which index is requested
+     * @return index of the commit. Return -1 if there is no such merge commit.
+     */
+    public int mergeIndexOf(String commitID) {
+        checkoutMaster();
+
+        List<RevCommit> mergeCommits = null;
+        try {
+            mergeCommits = getMergeScenarios();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+
+        if (mergeCommits != null) {
+            for (int i=0; i < mergeCommits.size(); i++) {
+                if (mergeCommits.get(i).getId().getName().equals(commitID)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
     public List<MergeScenario> analyseMergeScenarios(List<RevCommit> commits) {
         System.out.println("Analysing " + commits.size() + " merges");
-        List<MergeScenario> mergeScenarios = new ArrayList<MergeScenario>(commits.size());
+        List<MergeScenario> mergeScenarios = new ArrayList<>(commits.size());
         for (int i = 0; i < commits.size(); i++) {
             RevCommit commit = commits.get(i);
             MergeScenario mergeScenario = analyseMergeScenario(commit);
@@ -130,13 +163,15 @@ public class Project {
     }
 
     public MergeScenario analyseMergeScenario(RevCommit commit) {
+        checkoutMaster();
+
         MergeScenario mergeScenario = new MergeScenario(
                 commit.getName(), commit.getParents()[0].getName(), commit.getParents()[1].getName());
         try {
             //Merge
             MergeResult mergeResult = getMergeResult(commit);
 
-            mergeScenario.getMerge().setStatus(mergeResult.getMergeStatus().name());
+            mergeScenario.getMerge().setState(mergeResult.getMergeStatus().name());
 
             if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
                 throw new MyMergeConflictException(mergeResult);
@@ -154,26 +189,20 @@ public class Project {
 
             //Tests
 
-
-        } catch (NotMergedException e) {
-            mergeScenario.getMerge().addException(e);
-        } catch (GitAPIException e) {
-            mergeScenario.getMerge().addException(e);
-        } catch (InterruptedException e) {
-            mergeScenario.getBuild().addException(e);
-        } catch (IOException e) {
-            mergeScenario.getBuild().addException(e);
+        }
+        //Merge Exceptions
+        catch (GitAPIException e) {
+            mergeScenario.getMerge().setState("GitAPIException");
         } catch (MyMergeConflictException e) {
-            Map<String, int[][]> conflicts = e.getMergeResult().getConflicts();
-            if (conflicts == null) {
-                System.out.println("conflicts null");
-            } else if (conflicts.isEmpty()) {
-                System.out.println("conflicts empty");
-            } else {
-                for (Object string : conflicts.keySet()) {
-                    System.out.println(string);
-                }
-            }
+            Set<String> keySet = e.getMergeResult().getConflicts().keySet();
+            Set<String> conflicts = new HashSet<>(keySet);
+            mergeScenario.getMerge().setConflicts(conflicts);
+        }
+        //Build Exceptions
+        catch (InterruptedException e) {
+            mergeScenario.getBuild().setState("Interrupted");
+        } catch (IOException e) {
+            mergeScenario.getBuild().setState("IOException");
         } catch (MyNotBuildException e) {
             mergeScenario.getBuild().setState("not build");
         }
@@ -199,7 +228,7 @@ public class Project {
     public List<RevCommit> getMergeScenarios() throws GitAPIException {
         Iterable<RevCommit> log = git.log().call();
         Iterator<RevCommit> it = log.iterator();
-        List<RevCommit> merges = new LinkedList<RevCommit>();
+        List<RevCommit> merges = new LinkedList<>();
         while (it.hasNext()) {
             RevCommit comm = it.next();
             if (comm.getParentCount() > 1) {
@@ -210,20 +239,15 @@ public class Project {
     }
 
     public MergeResult getMergeResult(RevCommit merge) throws GitAPIException {
-
         git.checkout().setName(merge.getParents()[0].getName()).call();
-        MergeResult mergeResult = git.merge().include(merge.getParents()[1]).call();
-
-        return mergeResult;
+        return git.merge().include(merge.getParents()[1]).call();
     }
 
     public String build() throws IOException, InterruptedException {
         Process p2 = Runtime.getRuntime().exec(buildCommand);
         p2.waitFor();
 
-        String message = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
-
-        return message;
+        return org.apache.commons.io.IOUtils.toString(p2.getInputStream());
     }
 
     public String getStateOutOfBuild(String buildMessage) {
@@ -241,7 +265,7 @@ public class Project {
 
     public void checkoutMaster() {
         try {
-            //git.reset().call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).call();
             git.checkout().setForce(true).setName("master").call();
         } catch (GitAPIException e) {
             e.printStackTrace();

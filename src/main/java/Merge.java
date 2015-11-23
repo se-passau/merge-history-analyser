@@ -1,49 +1,41 @@
-import org.eclipse.jgit.api.MergeResult;
-
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by martin on 14.11.15.
  */
 public class Merge {
 
-    String status;
-    List<Exception> exceptions;
+    String state;
+    Set<String> conflicts;
 
     public Merge() {
-        exceptions = new LinkedList<Exception>();
-        //Iterator conflictIterator = mergeResult.getConflicts().keySet().iterator();
-
-        /*
-        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-            while(conflictIterator.hasNext()) {
-                System.out.println(conflictIterator.next());
-            }
-        } else {
-        }
-        */
     }
 
-    public void addException(Exception e) {
-        exceptions.add(e);
+
+    public String getState() {
+        return state;
     }
 
-    public String getStatus() {
-        return status;
+    public void setState(String state) {
+        this.state = state;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public Set<String> getConflicts() {
+        return conflicts;
+    }
+
+    public void setConflicts(Set<String> conflicts) {
+        this.conflicts = conflicts;
     }
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Merge \n");
-        builder.append("Status: " + status + "\n");
+        builder.append("Status: " + state + "\n");
         builder.append("Exceptions: \n");
-        Iterator<Exception> iterator = exceptions.iterator();
+        Iterator<String> iterator = conflicts.iterator();
         while (iterator.hasNext()) {
             builder.append(iterator.next() + "\n");
         }
