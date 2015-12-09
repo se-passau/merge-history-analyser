@@ -63,7 +63,7 @@ public class Project {
 
         List<RevCommit> mergeCommits = null;
         try {
-            mergeCommits = getMergeScenarios();
+            mergeCommits = getMergeCommits();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
@@ -82,7 +82,7 @@ public class Project {
 
         List<RevCommit> mergeCommits = null;
         try {
-            mergeCommits = getMergeScenarios();
+            mergeCommits = getMergeCommits();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
@@ -109,7 +109,7 @@ public class Project {
 
         List<RevCommit> mergeCommits = null;
         try {
-            mergeCommits = getMergeScenarios();
+            mergeCommits = getMergeCommits();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
@@ -134,7 +134,7 @@ public class Project {
 
         List<RevCommit> mergeCommits = null;
         try {
-            mergeCommits = getMergeScenarios();
+            mergeCommits = getMergeCommits();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
@@ -149,27 +149,27 @@ public class Project {
         return -1;
     }
 
-    public List<MergeScenario> analyseMergeScenarios(List<RevCommit> commits) {
-        System.out.println("Analysing " + commits.size() + " merges");
-        List<MergeScenario> mergeScenarios = new ArrayList<>(commits.size());
-        for (int i = 0; i < commits.size(); i++) {
-            RevCommit commit = commits.get(i);
+    public List<MergeScenario> analyseMergeScenarios(List<RevCommit> mergeCommits) {
+        System.out.println("Analysing " + mergeCommits.size() + " merges");
+        List<MergeScenario> mergeScenarios = new ArrayList<>(mergeCommits.size());
+        for (int i = 0; i < mergeCommits.size(); i++) {
+            RevCommit commit = mergeCommits.get(i);
             MergeScenario mergeScenario = analyseMergeScenario(commit);
             mergeScenarios.add(mergeScenario);
 
-            System.out.println("Finished " + (i + 1) + "/" + commits.size());
+            System.out.println("Finished " + (i + 1) + "/" + mergeCommits.size() + "   " + commit.getId().getName());
         }
         return mergeScenarios;
     }
 
-    public MergeScenario analyseMergeScenario(RevCommit commit) {
+    public MergeScenario analyseMergeScenario(RevCommit mergeCommit) {
         checkoutMaster();
 
         MergeScenario mergeScenario = new MergeScenario(
-                commit.getName(), commit.getParents()[0].getName(), commit.getParents()[1].getName());
+                mergeCommit.getName(), mergeCommit.getParents()[0].getName(), mergeCommit.getParents()[1].getName());
         try {
             //Merge
-            MergeResult mergeResult = getMergeResult(commit);
+            MergeResult mergeResult = getMergeResult(mergeCommit);
 
             mergeScenario.getMerge().setState(mergeResult.getMergeStatus().name());
 
@@ -207,6 +207,8 @@ public class Project {
             mergeScenario.getBuild().setState("not build");
         }
 
+        checkoutMaster();
+
         return mergeScenario;
     }
 
@@ -225,7 +227,7 @@ public class Project {
     public class MyNotBuildException extends Exception {
     }
 
-    public List<RevCommit> getMergeScenarios() throws GitAPIException {
+    public List<RevCommit> getMergeCommits() throws GitAPIException {
         Iterable<RevCommit> log = git.log().call();
         Iterator<RevCommit> it = log.iterator();
         List<RevCommit> merges = new LinkedList<>();

@@ -39,15 +39,4 @@ public class MergeScenario {
     public void setBuild(Build build) {
         this.build = build;
     }
-
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("MergeCommit: " + commit + "\n");
-        builder.append("Parent: " + parent1 + "\n");
-        builder.append("Parent: " + parent2 + "\n");
-        builder.append(merge);
-        builder.append(build);
-
-        return builder.toString();
-    }
 }

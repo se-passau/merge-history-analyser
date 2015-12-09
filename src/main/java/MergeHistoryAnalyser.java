@@ -1,22 +1,10 @@
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
-import org.eclipse.jgit.lib.ObjectId;
-import org.xml.sax.InputSource;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import java.io.*;
 import java.util.Arrays;
 
-/**
- * Created by martin on 30.09.15.
- */
 public class MergeHistoryAnalyser {
-
 
     public static void main(String[] args) {
         String USAGE = "Usage: MergeHistoryAnalyer [local Repo] [remote Repo] [build Script]\n";
@@ -25,9 +13,11 @@ public class MergeHistoryAnalyser {
             System.err.println(USAGE);
         } else {
             Project project = new Project(args[0], args[1], args[2]);
-            //project.analyse(Arrays.asList("6f63a3e274a75a553595d787b3e11f6ef19e573b", "a569a2ad2f5d9d7fdc19889a94ea6c1b2578339a"));
-            int index = project.mergeIndexOf("6f63a3e274a75a553595d787b3e11f6ef19e573b");
-            project.analyseFromTo(index, index+10);
+            //project.analyse(Arrays.asList("9c8e0119ba0e0114b0f2dd114e0e7337690df2f6"));
+            //project.analyse(Arrays.asList("bb6064a6881c315befe238363e590e6d225ac07c"));
+            //project.analyse(Arrays.asList("9c8e0119ba0e0114b0f2dd114e0e7337690df2f6", "bb6064a6881c315befe238363e590e6d225ac07c"));
+            project.analyseFromTo(440, 445);
+
 
             XStream xstream = new XStream(new StaxDriver());
             xstream.processAnnotations(Project.class);
