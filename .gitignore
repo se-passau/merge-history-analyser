@@ -9,5 +9,5 @@ build
 #Gradle
 .gradle
 
-
-log*
+#XML output
+*.xml

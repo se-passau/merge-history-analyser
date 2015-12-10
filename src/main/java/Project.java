@@ -45,7 +45,7 @@ public class Project {
         this.localPath = localPath;
         this.remotePath = remotePath;
         this.buildCommand = buildCommand;
-        mergeScenarios = new LinkedList<MergeScenario>();
+        mergeScenarios = new LinkedList<>();
         //init
         try {
             localRepo = new FileRepository(localPath + "/.git");
