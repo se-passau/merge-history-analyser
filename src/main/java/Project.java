@@ -267,7 +267,7 @@ public class Project {
 
     public void checkoutMaster() {
         try {
-            git.reset().setMode(ResetCommand.ResetType.HARD).call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef("origin/master").call();
             git.checkout().setForce(true).setName("master").call();
         } catch (GitAPIException e) {
             e.printStackTrace();
