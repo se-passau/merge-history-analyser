@@ -36,7 +36,6 @@ public class Project {
 
     @XStreamImplicit
     List<MergeScenario> mergeScenarios;
-
     @XStreamAsAttribute
     String buildCommand;
 
@@ -59,7 +58,11 @@ public class Project {
      * Analyses all merge commits.
      */
     public void analyse() {
-        checkoutMaster();
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+        }
 
         List<RevCommit> mergeCommits = null;
         try {
@@ -70,15 +73,25 @@ public class Project {
         if (mergeCommits != null) {
             this.mergeScenarios = analyseMergeScenarios(mergeCommits);
         }
-        checkoutMaster();
+
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Analyses commites with given commit IDs.
+     *
      * @param commitIDs commit IDs of the commits which shall be analysed
      */
     public void analyse(List<String> commitIDs) {
-        checkoutMaster();
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+        }
 
         List<RevCommit> mergeCommits = null;
         try {
@@ -95,17 +108,26 @@ public class Project {
             }
             this.mergeScenarios = analyseMergeScenarios(mergeCommitsToBeAnalysed);
         }
-        checkoutMaster();
+
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Analyses the first {@param numberOfAnalysis} commits
      *
      * @param start index to start with
-     * @param end index to end with
+     * @param end   index to end with
      */
     public void analyseFromTo(int start, int end) {
-        checkoutMaster();
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+        }
 
         List<RevCommit> mergeCommits = null;
         try {
@@ -121,16 +143,27 @@ public class Project {
         } else {
             System.out.println("No merges found");
         }
-        checkoutMaster();
+
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Return the index of a commit in the list of all merge commits.
+     *
      * @param commitID ID of commit which index is requested
      * @return index of the commit. Return -1 if there is no such merge commit.
      */
     public int mergeIndexOf(String commitID) {
-        checkoutMaster();
+        try {
+            checkoutMaster();
+        } catch (MyCheckoutMasterException e) {
+            e.printStackTrace();
+            return -1;
+        }
 
         List<RevCommit> mergeCommits = null;
         try {
@@ -140,7 +173,7 @@ public class Project {
         }
 
         if (mergeCommits != null) {
-            for (int i=0; i < mergeCommits.size(); i++) {
+            for (int i = 0; i < mergeCommits.size(); i++) {
                 if (mergeCommits.get(i).getId().getName().equals(commitID)) {
                     return i;
                 }
@@ -163,11 +196,11 @@ public class Project {
     }
 
     public MergeScenario analyseMergeScenario(RevCommit mergeCommit) {
-        checkoutMaster();
-
         MergeScenario mergeScenario = new MergeScenario(
                 mergeCommit.getName(), mergeCommit.getParents()[0].getName(), mergeCommit.getParents()[1].getName());
         try {
+            checkoutMaster();
+
             //Merge
             MergeResult mergeResult = getMergeResult(mergeCommit);
 
@@ -178,17 +211,15 @@ public class Project {
             }
 
             //Build
-            String buildMessage = build();
-            if (buildMessage.isEmpty()) {
-                throw new MyNotBuildException();
-            }
-            String state = getStateOutOfBuild(buildMessage);
-            double runtime = getRuntimeOutOfBuild(buildMessage);
-            mergeScenario.getBuild().setState(state);
-            mergeScenario.getBuild().setRuntime(runtime);
+            mergeScenario.setBuild(build());
 
             //Tests
 
+            //checkoutMaster();
+        }
+        //Checkout Master
+        catch (MyCheckoutMasterException e) {
+            mergeScenario.getMerge().setState("CHECKOUT MASTER ERROR");
         }
         //Merge Exceptions
         catch (GitAPIException e) {
@@ -203,11 +234,7 @@ public class Project {
             mergeScenario.getBuild().setState("Interrupted");
         } catch (IOException e) {
             mergeScenario.getBuild().setState("IOException");
-        } catch (MyNotBuildException e) {
-            mergeScenario.getBuild().setState("not build");
         }
-
-        checkoutMaster();
 
         return mergeScenario;
     }
@@ -224,7 +251,16 @@ public class Project {
         }
     }
 
+    public class MyNotMergedException extends Exception {
+    }
+
     public class MyNotBuildException extends Exception {
+    }
+
+    public class MyCheckoutMasterException extends Exception {
+        public MyCheckoutMasterException (String message) {
+            super(message);
+        }
     }
 
     public List<RevCommit> getMergeCommits() throws GitAPIException {
@@ -245,19 +281,25 @@ public class Project {
         return git.merge().include(merge.getParents()[1]).call();
     }
 
-    public String build() throws IOException, InterruptedException {
+    public Build build() throws IOException, InterruptedException {
         Process p2 = Runtime.getRuntime().exec(buildCommand);
         p2.waitFor();
 
-        return org.apache.commons.io.IOUtils.toString(p2.getInputStream());
-    }
+        String buildMessage = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
+        Build build = new Build();
 
-    public String getStateOutOfBuild(String buildMessage) {
-        if (buildMessage.contains("BUILD SUCCESSFUL")) {
-            return "PASSED";
+        if (buildMessage.contains("NO BUILD POSSIBLE")) {
+            build.setState("NO BUILD POSSIBLE");
         } else {
-            return "FAILED";
+            if (buildMessage.contains("BUILD SUCCESSFUL")) {
+                build.setState("SUCCESSFUL");
+            } else {
+                build.setState("FAILED");
+            }
+            double runtime = getRuntimeOutOfBuild(buildMessage);
+            build.setRuntime(runtime);
         }
+        return build;
     }
 
     public Double getRuntimeOutOfBuild(String buildMessage) {
@@ -265,21 +307,12 @@ public class Project {
         return Double.parseDouble(rawTime.split(" ")[0]);
     }
 
-    public void checkoutMaster() {
+    public void checkoutMaster() throws MyCheckoutMasterException {
         try {
             git.reset().setMode(ResetCommand.ResetType.HARD).call();
             git.checkout().setForce(true).setName("master").call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            throw new MyCheckoutMasterException(e.getMessage());
         }
-    }
-
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        for (Object mergeScenario : mergeScenarios) {
-            builder.append(mergeScenario);
-            builder.append("\n");
-        }
-        return builder.toString();
     }
 }

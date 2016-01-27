@@ -1,5 +1,3 @@
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -28,17 +26,5 @@ public class Merge {
 
     public void setConflicts(Set<String> conflicts) {
         this.conflicts = conflicts;
-    }
-
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Merge \n");
-        builder.append("Status: " + state + "\n");
-        builder.append("Exceptions: \n");
-        Iterator<String> iterator = conflicts.iterator();
-        while (iterator.hasNext()) {
-            builder.append(iterator.next() + "\n");
-        }
-        return builder.toString();
     }
 }
