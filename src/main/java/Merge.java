@@ -1,3 +1,5 @@
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+
 import java.util.Set;
 
 /**
@@ -5,6 +7,7 @@ import java.util.Set;
  */
 public class Merge {
 
+    @XStreamAsAttribute
     String state;
     Set<String> conflicts;
 

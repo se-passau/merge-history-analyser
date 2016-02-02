@@ -5,18 +5,18 @@ import java.util.Arrays;
 
 public class MergeHistoryAnalyser {
 
-    public static void main(String[] args) throws Project.MyCheckoutMasterException {
+    public static void main(String[] args) {
         String USAGE = "Usage: MergeHistoryAnalyer [local Repo] [remote Repo] [build Script]\n";
 
         //RxJava
-//        args[0] = "/home/martin/hiwi_job/projekte/RxJava";
-//        args[1] = "https://github.com/ReactiveX/RxJava";
-//        args[2] = "./buildRxJava.sh";
+        args[0] = "/home/martin/hiwi_job/projekte/RxJava";
+        args[1] = "https://github.com/ReactiveX/RxJava";
+        args[2] = "./buildRxJava.sh";
 
         //Voldemort
-        args[0] = "/home/martin/hiwi_job/projekte/voldemort";
-        args[1] = "https://github.com/voldemort/voldemort.git";
-        args[2] = "./buildVoldemort.sh";
+//        args[0] = "/home/martin/hiwi_job/projekte/voldemort";
+//        args[1] = "https://github.com/voldemort/voldemort.git";
+//        args[2] = "./buildVoldemort.sh";
 
 
         if (args.length != 3) {
@@ -30,7 +30,8 @@ public class MergeHistoryAnalyser {
 //           project.analyse(Arrays.asList("9c8e0119ba0e0114b0f2dd114e0e7337690df2f6"));
 //            project.analyse(Arrays.asList("bb6064a6881c315befe238363e590e6d225ac07c"));
 //            project.analyse(Arrays.asList("9c8e0119ba0e0114b0f2dd114e0e7337690df2f6", "bb6064a6881c315befe238363e590e6d225ac07c"));
-//            project.analyseFromTo(0, 1);
+//            project.analyseFromTo(440, 446);
+            project.analyseFromTo(909, 910);
 
             //RxJava
             //project.analyseFromTo(910, 915);
