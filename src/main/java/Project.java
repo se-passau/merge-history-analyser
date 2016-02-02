@@ -145,10 +145,13 @@ public class Project {
         List<MergeScenario> mergeScenarios = new ArrayList<>(mergeCommits.size());
         for (int i = 0; i < mergeCommits.size(); i++) {
             RevCommit commit = mergeCommits.get(i);
+
+            System.out.println("Working on " + (i + 1) + "/" + mergeCommits.size() + "   " + commit.getId().getName());
+
             MergeScenario mergeScenario = analyseMergeScenario(commit);
             mergeScenarios.add(mergeScenario);
 
-            System.out.println("Finished " + (i + 1) + "/" + mergeCommits.size() + "   " + commit.getId().getName());
+            System.out.println("Finished");
         }
         return mergeScenarios;
     }
@@ -168,7 +171,11 @@ public class Project {
         mergeScenario.setMerge(merge(mergeCommit));
 
         //Build
-        mergeScenario.setBuild(build());
+        if(mergeScenario.getMerge().getState().equals("CONFLICTING")) {
+            mergeScenario.setBuild(new Build("NOT BUILD BECAUSE OF CONFLICT", 0));
+        } else {
+            mergeScenario.setBuild(build());
+        }
 
         //Tests
 

@@ -18,6 +18,11 @@ public class Build {
     public Build() {
     }
 
+    public Build(String state, int runtime) {
+        this.state = state;
+        this.runtime = runtime;
+    }
+
     public double getRuntime() {
         return runtime;
     }

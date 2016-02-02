@@ -31,7 +31,7 @@ public class MergeHistoryAnalyser {
 //            project.analyse(Arrays.asList("bb6064a6881c315befe238363e590e6d225ac07c"));
 //            project.analyse(Arrays.asList("9c8e0119ba0e0114b0f2dd114e0e7337690df2f6", "bb6064a6881c315befe238363e590e6d225ac07c"));
 //            project.analyseFromTo(440, 446);
-            project.analyseFromTo(909, 910);
+            project.analyseFromTo(909, 912);
 
             //RxJava
             //project.analyseFromTo(910, 915);
