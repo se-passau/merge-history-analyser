@@ -1,8 +1,13 @@
+package Data;
+
+import Data.Build;
+import Data.Merge;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Created by martin on 14.11.15.
  */
+@XStreamAlias("MergeScenario")
 public class MergeScenario {
     String commit;
 

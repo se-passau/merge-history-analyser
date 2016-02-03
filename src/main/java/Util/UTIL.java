@@ -1,3 +1,5 @@
+package Util;
+
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.OutputKeys;
@@ -30,22 +32,21 @@ public class UTIL {
         }
     }
 
-    public static String formatXml(String xml){
-
-        try{
+    public static String formatXml(String xml) {
+        try {
             Transformer serializer = SAXTransformerFactory.newInstance().newTransformer();
 
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
             Source xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(xml.getBytes())));
-            StreamResult res =  new StreamResult(new ByteArrayOutputStream());
+            StreamResult res = new StreamResult(new ByteArrayOutputStream());
 
             serializer.transform(xmlSource, res);
 
-            return new String(((ByteArrayOutputStream)res.getOutputStream()).toByteArray());
+            return new String(((ByteArrayOutputStream) res.getOutputStream()).toByteArray());
 
-        }catch(Exception e){
+        } catch (Exception e) {
             return xml;
         }
     }

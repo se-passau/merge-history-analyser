@@ -1,3 +1,5 @@
+package Data;
+
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 import java.util.Set;

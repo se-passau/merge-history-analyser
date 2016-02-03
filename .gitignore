@@ -11,3 +11,9 @@ build
 
 #XML output
 *.xml
+
+#log output
+log.txt
+
+#Artifacts
+/src/main/java/META-INF/*
