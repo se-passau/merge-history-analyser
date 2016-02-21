@@ -17,3 +17,6 @@ log.txt
 
 #Artifacts
 /src/main/java/META-INF/*
+
+#vim
+*.swp
