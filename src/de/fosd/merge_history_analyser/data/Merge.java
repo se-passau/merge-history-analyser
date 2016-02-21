@@ -1,17 +1,17 @@
-package Data;
+package de.fosd.merge_history_analyser.data;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 import java.util.Set;
 
 /**
- * Created by martin on 14.11.15.
+ * @author Martin Gruber
  */
 public class Merge {
 
     @XStreamAsAttribute
-    String state;
-    Set<String> conflicts;
+    private String state;
+    private Set<String> conflicts;
 
     public Merge() {
     }

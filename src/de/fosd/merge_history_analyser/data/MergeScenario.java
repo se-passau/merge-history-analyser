@@ -1,24 +1,22 @@
-package Data;
+package de.fosd.merge_history_analyser.data;
 
-import Data.Build;
-import Data.Merge;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Created by martin on 14.11.15.
+ * @author Martin Gruber
  */
 @XStreamAlias("MergeScenario")
 public class MergeScenario {
-    String commit;
+    private String commit;
 
     @XStreamAlias("parent")
-    String parent1;
+    private String parent1;
 
     @XStreamAlias("parent")
-    String parent2;
+    private String parent2;
 
-    Merge merge;
-    Build build;
+    private Merge merge;
+    private Build build;
 
 
     public MergeScenario(String commit, String parent1, String parent2) {
