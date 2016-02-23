@@ -31,6 +31,7 @@ public class MergeHistoryAnalyser {
                 .longOpt("local-repo")
                 .desc("The path to where the repository is stored on this machine")
                 .hasArg()
+                .required()
                 .build());
 
         options.addOption(Option.builder("r")

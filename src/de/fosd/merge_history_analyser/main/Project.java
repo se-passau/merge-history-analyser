@@ -18,6 +18,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,6 +60,10 @@ public class Project {
     StringBuilder logger;
 
     public Project(String localPath, String remotePath, String buildCommand, boolean verbose) {
+        if (localPath == null || !(new File(localPath).isDirectory())) {
+            throw new RuntimeException("Local repository does not exist: " + localPath);
+        }
+
         name = localPath.substring(localPath.lastIndexOf("/") + 1);
         this.localPath = localPath;
         this.remotePath = remotePath;
