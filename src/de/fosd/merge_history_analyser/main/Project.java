@@ -1,12 +1,14 @@
-package Main;
+package de.fosd.merge_history_analyser.main;
 
-import Data.Build;
-import Data.Merge;
-import Data.MergeScenario;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import de.fosd.merge_history_analyser.data.Build;
+import de.fosd.merge_history_analyser.data.Merge;
+import de.fosd.merge_history_analyser.data.MergeScenario;
+
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand;
@@ -16,39 +18,42 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Created by martin on 14.11.15.
+ * @author Martin Gruber
  */
 public class Project {
 
     @XStreamAsAttribute
-    String name;
+    private String name;
 
     @XStreamOmitField
-    String localPath;
+    private String localPath;
 
     @XStreamAlias("url")
     @XStreamAsAttribute
-    String remotePath;
+    private String remotePath;
 
     @XStreamOmitField
-    Repository localRepo;
+    private Repository localRepo;
 
     @XStreamOmitField
-    Git git;
+    private Git git;
 
     @XStreamImplicit
-    List<MergeScenario> mergeScenarios;
+    private List<MergeScenario> mergeScenarios;
 
     @XStreamAsAttribute
-    String buildCommand;
+    private String buildCommand;
 
     @XStreamOmitField
-    boolean verbose;
+    private boolean verbose;
 
     @XStreamOmitField
     StringBuilder logger;
@@ -72,6 +77,10 @@ public class Project {
         } catch (IOException e) {
             log(e.getMessage());
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**

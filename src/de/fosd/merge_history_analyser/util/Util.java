@@ -1,6 +1,14 @@
-package Util;
+package de.fosd.merge_history_analyser.util;
 
 import org.xml.sax.InputSource;
+
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
@@ -8,12 +16,11 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
 
 /**
- * Created by martin on 14.11.15.
+ * @author Martin Gruber
  */
-public class UTIL {
+public class Util {
 
 
     public static void writeFile(String filename, String text) {
@@ -26,9 +33,11 @@ public class UTIL {
         } catch (IOException ex) {
             // report
         } finally {
-            try {
-                writer.close();
-            } catch (Exception ex) {/*ignore*/}
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (Exception ex) {/*ignore*/}
+            }
         }
     }
 
