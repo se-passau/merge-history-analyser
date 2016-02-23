@@ -4,9 +4,8 @@ import Util.UTIL;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import org.apache.commons.cli.*;
-import org.eclipse.jgit.ignore.internal.Strings;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 //        RxJava
 //        -l "/home/martin/hiwi_job/projekte/RxJava" -r "https://github.com/ReactiveX/RxJava" -b "./buildRxJava.sh"
@@ -25,14 +24,12 @@ public class MergeHistoryAnalyser {
                 .longOpt("local-repo")
                 .desc("The path to where the repository is stored on this machine")
                 .hasArg()
-                .required()
                 .build());
 
         options.addOption(Option.builder("r")
                 .longOpt("remote-repo")
                 .desc("The url to the repository")
                 .hasArg()
-                .required()
                 .build());
 
         options.addOption(Option.builder("b")
@@ -48,9 +45,10 @@ public class MergeHistoryAnalyser {
                 .numberOfArgs(2)
                 .build());
 
-        options.addOption("nv", "non-verbose", false, "Print this help page");
+        options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
+        options.addOption("nv", "no-verbose", false, "Don't print logging out, just write to logfile");
         options.addOption("o", "output", true, "store results in given file");
-        options.addOption("log", true, "store log output in given file");
+        options.addOption("log", true, "store logging output in given file. If no parameter is given the logging output will be stored in log.txt");
         options.addOption("h", "help", false, "Print this help page");
 
         try {
@@ -67,18 +65,16 @@ public class MergeHistoryAnalyser {
                     project.analyse();
                 }
 
-
-                //TODO auch serialisieren wenn zwischendurch eine Excpetion fliegt.
                 //Object to XML Conversion
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.processAnnotations(Project.class);
                 String xml = UTIL.formatXml(xstream.toXML(project));
-                if(cmd.hasOption("o")) {
+                if (cmd.hasOption("o")) {
                     UTIL.writeFile(cmd.getOptionValue("o"), xml);
                 } else {
                     UTIL.writeFile(project.name + ".xml", xml);
                 }
-                if(cmd.hasOption("log")) {
+                if (cmd.hasOption("log")) {
                     UTIL.writeFile(cmd.getOptionValue("log"), project.logger.toString());
                 } else {
                     UTIL.writeFile("log.txt", project.logger.toString());

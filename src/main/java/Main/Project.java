@@ -16,7 +16,10 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -53,10 +56,6 @@ public class Project {
     @XStreamOmitField
     StringBuilder logger;
 
-    public Project(String localPath, String remotePath) {
-        this(localPath, remotePath, null, true);
-    }
-
     public Project(String localPath, String remotePath, String buildCommand, boolean verbose) {
         name = localPath.substring(localPath.lastIndexOf("/") + 1);
         this.localPath = localPath;
@@ -92,7 +91,8 @@ public class Project {
     public void analyse(List<String> commitIDs) {
         checkoutMaster();
         List<RevCommit> mergeCommits = getMergeCommits();
-        List<RevCommit> mergeCommitsToBeAnalysed = mergeCommits.stream().filter(commit -> commitIDs.contains(commit.getId().name())).collect(Collectors.toCollection(LinkedList::new));
+        List<RevCommit> mergeCommitsToBeAnalysed =
+                mergeCommits.stream().filter(commit -> commitIDs.contains(commit.getId().name())).collect(Collectors.toCollection(LinkedList::new));
         this.mergeScenarios = analyseMergeScenarios(mergeCommitsToBeAnalysed);
         checkoutMaster();
     }
@@ -193,6 +193,7 @@ public class Project {
 
         checkoutMaster();
 
+        //TODO support other merge tools
         //Merge
         mergeScenario.setMerge(merge(mergeCommit));
 
@@ -292,6 +293,6 @@ public class Project {
         if (verbose) {
             System.out.println(message);
         }
-        logger.append(message + "\n");
+        logger.append(message).append("\n");
     }
 }
