@@ -1,21 +1,17 @@
-package Data;
+package de.fosd.merge_history_analyser.data;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
- * Created by martin on 14.11.15.
+ * @author Martin Gruber
  */
 public class Build {
 
     @XStreamAsAttribute
-    String state;
+    private String state;
 
     @XStreamAsAttribute
-    double runtime;
+    private double runtime;
 
     public Build() {
     }

@@ -1,11 +1,15 @@
-package Main;
+package de.fosd.merge_history_analyser.main;
 
-import Util.UTIL;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
-import org.apache.commons.cli.*;
-
-import java.util.Arrays;
+import de.fosd.merge_history_analyser.util.Util;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 //        RxJava
 //        -l "/home/martin/hiwi_job/projekte/RxJava" -r "https://github.com/ReactiveX/RxJava" -b "./buildRxJava.sh"
@@ -14,6 +18,9 @@ import java.util.Arrays;
 //        -l "/home/martin/hiwi_job/projekte/voldemort" -r "https://github.com/voldemort/voldemort.git" -b "./buildVoldemort.sh"
 
 
+/**
+ * @author Martin Gruber
+ */
 public class MergeHistoryAnalyser {
 
     public static void main(String[] args) {
@@ -47,6 +54,7 @@ public class MergeHistoryAnalyser {
 
         options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
         options.addOption("nv", "no-verbose", false, "Don't print logging out, just write to logfile");
+        options.addOption("nv", "non-verbose", false, "Quiet output");
         options.addOption("o", "output", true, "store results in given file");
         options.addOption("log", true, "store logging output in given file. If no parameter is given the logging output will be stored in log.txt");
         options.addOption("h", "help", false, "Print this help page");
@@ -68,16 +76,16 @@ public class MergeHistoryAnalyser {
                 //Object to XML Conversion
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.processAnnotations(Project.class);
-                String xml = UTIL.formatXml(xstream.toXML(project));
-                if (cmd.hasOption("o")) {
-                    UTIL.writeFile(cmd.getOptionValue("o"), xml);
+                String xml = Util.formatXml(xstream.toXML(project));
+                if(cmd.hasOption("o")) {
+                    Util.writeFile(cmd.getOptionValue("o"), xml);
                 } else {
-                    UTIL.writeFile(project.name + ".xml", xml);
+                    Util.writeFile(project.getName() + ".xml", xml);
                 }
-                if (cmd.hasOption("log")) {
-                    UTIL.writeFile(cmd.getOptionValue("log"), project.logger.toString());
+                if(cmd.hasOption("log")) {
+                    Util.writeFile(cmd.getOptionValue("log"), project.logger.toString());
                 } else {
-                    UTIL.writeFile("log.txt", project.logger.toString());
+                    Util.writeFile("log.txt", project.logger.toString());
                 }
             }
         } catch (ParseException e) {
