@@ -54,8 +54,8 @@ public class MergeHistoryAnalyser {
 
         options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
         options.addOption("nv", "non-verbose", false, "Quiet output");
-        options.addOption("o", "output", true, "store results in given file");
-        options.addOption("log", true, "store logging output in given file. If no parameter is given the logging output will be stored in log.txt");
+        options.addOption("o", "output", true, "Store results in given file");
+        options.addOption("log", true, "Store logging output in given file. The default is log.txt");
         options.addOption("h", "help", false, "Print this help page");
 
         try {
