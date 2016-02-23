@@ -109,7 +109,19 @@ public class Project {
     }
 
     /**
-     * Analyses the first {@param numberOfAnalysis} commits
+     * Analyses all commits from {@param start} to {@param end}.
+     *
+     * @param start skip all commits before
+     * @param end   skip all commits after
+     */
+    public void analyseFromTo(String start, String end) {
+        checkoutMaster();
+        this.mergeScenarios = analyseMergeScenarios(getMergeCommits(start, end));
+        checkoutMaster();
+    }
+
+    /**
+     * Analyses all commits from {@param start} to {@param end}.
      *
      * @param start index to start with
      * @param end   index to end with
@@ -122,18 +134,33 @@ public class Project {
     }
 
     /**
-     * Returns all commits of the project which are merges.
+     * Returns all commits from {@param start} to {@param end} that are merge commits.
      *
-     * @return all commits which are merges
+     * We consider a commit as a merge commit if its number of parents is greater than 1.
+     *
+     * @param start skip all commits before
+     * @param end skip all commits after
+     * @return all commits within specified range that are merges
      */
-    public List<RevCommit> getMergeCommits() {
+    public List<RevCommit> getMergeCommits(String start, String end) {
         List<RevCommit> merges = new LinkedList<>();
         Iterable<RevCommit> log;
+        boolean addCommits = start == null;
         try {
             log = git.log().call();
             for (RevCommit commit : log) {
+                if (!addCommits) {
+                    if (commit.getName().equals(start)) {
+                        addCommits = true;
+                    } else {
+                        continue;
+                    }
+                }
                 if (commit.getParentCount() > 1) {
                     merges.add(commit);
+                }
+                if (end != null && commit.getName().equals(end)) {
+                    break;
                 }
             }
         } catch (GitAPIException e) {
@@ -141,6 +168,17 @@ public class Project {
         }
 
         return merges;
+    }
+
+    /**
+     * Returns all commits of the project which are merges.
+     *
+     * We consider a commit as a merge commit if its number of parents is greater than 1.
+     *
+     * @return all commits which are merges
+     */
+    public List<RevCommit> getMergeCommits() {
+        return getMergeCommits(null, null);
     }
 
     /**

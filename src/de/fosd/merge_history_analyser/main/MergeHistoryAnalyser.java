@@ -46,11 +46,16 @@ public class MergeHistoryAnalyser {
                 .hasArg()
                 .build());
 
-        options.addOption(Option.builder("ft")
-                .longOpt("from-to")
-                .desc("analyses only an extract out of all merges")
+        options.addOption(Option.builder("f")
+                .longOpt("from")
+                .desc("Skip all merges before a specified commit")
                 .hasArg()
-                .numberOfArgs(2)
+                .build());
+
+        options.addOption(Option.builder("t")
+                .longOpt("to")
+                .desc("Skip all merges after a specified commit")
+                .hasArg()
                 .build());
 
         options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
@@ -66,9 +71,15 @@ public class MergeHistoryAnalyser {
                 new HelpFormatter().printHelp("java ", options);
             } else {
                 Project project = new Project(cmd.getOptionValue("l"), cmd.getOptionValue("r"), cmd.getOptionValue("b"), !cmd.hasOption("nv"));
+                String start = cmd.getOptionValue("f");
+                String end = cmd.getOptionValue("t");
 
-                if (cmd.hasOption("ft")) {
-                    project.analyseFromTo(Integer.parseInt(cmd.getOptionValues("ft")[0]), Integer.parseInt(cmd.getOptionValues("ft")[1]));
+                if (cmd.hasOption("f") || cmd.hasOption("t")) {
+                    try {
+                        project.analyseFromTo(Integer.parseInt(start), Integer.parseInt(end));
+                    } catch (NumberFormatException e) {
+                        project.analyseFromTo(cmd.getOptionValue("f"), cmd.getOptionValue("t"));
+                    }
                 } else {
                     project.analyse();
                 }
