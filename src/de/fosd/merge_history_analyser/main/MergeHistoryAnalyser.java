@@ -31,6 +31,7 @@ public class MergeHistoryAnalyser {
                 .longOpt("local-repo")
                 .desc("The path to where the repository is stored on this machine")
                 .hasArg()
+                .required()
                 .build());
 
         options.addOption(Option.builder("r")
@@ -45,18 +46,22 @@ public class MergeHistoryAnalyser {
                 .hasArg()
                 .build());
 
-        options.addOption(Option.builder("ft")
-                .longOpt("from-to")
-                .desc("analyses only an extract out of all merges")
+        options.addOption(Option.builder("f")
+                .longOpt("from")
+                .desc("Skip all merges before a specified commit")
                 .hasArg()
-                .numberOfArgs(2)
+                .build());
+
+        options.addOption(Option.builder("t")
+                .longOpt("to")
+                .desc("Skip all merges after a specified commit")
+                .hasArg()
                 .build());
 
         options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
-        options.addOption("nv", "no-verbose", false, "Don't print logging out, just write to logfile");
         options.addOption("nv", "non-verbose", false, "Quiet output");
-        options.addOption("o", "output", true, "store results in given file");
-        options.addOption("log", true, "store logging output in given file. If no parameter is given the logging output will be stored in log.txt");
+        options.addOption("o", "output", true, "Store results in given file");
+        options.addOption("log", true, "Store logging output in given file. The default is log.txt");
         options.addOption("h", "help", false, "Print this help page");
 
         try {
@@ -66,9 +71,15 @@ public class MergeHistoryAnalyser {
                 new HelpFormatter().printHelp("java ", options);
             } else {
                 Project project = new Project(cmd.getOptionValue("l"), cmd.getOptionValue("r"), cmd.getOptionValue("b"), !cmd.hasOption("nv"));
+                String start = cmd.getOptionValue("f");
+                String end = cmd.getOptionValue("t");
 
-                if (cmd.hasOption("ft")) {
-                    project.analyseFromTo(Integer.parseInt(cmd.getOptionValues("ft")[0]), Integer.parseInt(cmd.getOptionValues("ft")[1]));
+                if (cmd.hasOption("f") || cmd.hasOption("t")) {
+                    try {
+                        project.analyseFromTo(Integer.parseInt(start), Integer.parseInt(end));
+                    } catch (NumberFormatException e) {
+                        project.analyseFromTo(cmd.getOptionValue("f"), cmd.getOptionValue("t"));
+                    }
                 } else {
                     project.analyse();
                 }
