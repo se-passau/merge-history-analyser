@@ -87,19 +87,17 @@ public class MergeHistoryAnalyser {
                 //Object to XML Conversion
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.processAnnotations(Project.class);
-                String projectInXML = Util.formatXml(xstream.toXML(project));
-
-                String filename = project.getName() + ".xml";
-                if (cmd.hasOption("o")) {
-                    filename = cmd.getOptionValue("o");
+                String xml = Util.formatXml(xstream.toXML(project));
+                if(cmd.hasOption("o")) {
+                    Util.writeFile(cmd.getOptionValue("o"), xml);
+                } else {
+                    Util.writeFile(project.getName() + ".xml", xml);
                 }
-                Util.writeFile(filename, projectInXML);
-
-                String logFilename = "log.txt";
-                if (cmd.hasOption("log")) {
-                    logFilename = cmd.getOptionValue("log");
+                if(cmd.hasOption("log")) {
+                    Util.writeFile(cmd.getOptionValue("log"), project.logger.toString());
+                } else {
+                    Util.writeFile("log.txt", project.logger.toString());
                 }
-                Util.writeFile(logFilename, project.logger.toString());
             }
         } catch (ParseException e) {
             new HelpFormatter().printHelp("java ", options);
