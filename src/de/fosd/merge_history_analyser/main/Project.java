@@ -59,7 +59,7 @@ public class Project {
     @XStreamOmitField
     StringBuilder logger;
 
-    public Project(String localPath, String remotePath, String buildCommand, boolean verbose) {
+    public Project(String localPath, String remotePath, String buildScript, boolean verbose) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
@@ -67,7 +67,7 @@ public class Project {
         name = localPath.substring(localPath.lastIndexOf("/") + 1);
         this.localPath = localPath;
         this.remotePath = remotePath;
-        this.buildCommand = buildCommand;
+        this.buildCommand = "./" + buildScript;
         this.verbose = verbose;
         this.logger = new StringBuilder();
         mergeScenarios = new LinkedList<>();
@@ -319,8 +319,10 @@ public class Project {
             }
         } catch (IOException e) {
             build.setState("IO Exception");
+            log("ERROR while building: IO Exception");
         } catch (InterruptedException e) {
             build.setState("Interrupted Exception");
+            log("ERROR while building: Interrupted Exception");
         }
 
         return build;
