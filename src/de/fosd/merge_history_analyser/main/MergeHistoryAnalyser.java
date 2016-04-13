@@ -33,6 +33,7 @@ public class MergeHistoryAnalyser {
                 .required()
                 .build());
 
+        //TODO search for url in .git folder
         options.addOption(Option.builder("r")
                 .longOpt("remote-repo")
                 .desc("The url to the repository")
@@ -97,6 +98,17 @@ public class MergeHistoryAnalyser {
                             if (file.toLowerCase().contains(projectName)) {
                                 buildScript = searchPath.toString() + "/" + file;
                             }
+                        }
+                    }
+                    //no buildscript found
+                    if(buildScript == null) {
+                        //TODO log
+                    } else {
+                        File buildFile = new File(buildScript);
+                        if(!buildFile.exists()) {
+                            throw new IllegalArgumentException("Specified buildscript does not exist");
+                        } else {
+                            buildScript = buildFile.getAbsolutePath();
                         }
                     }
                 }

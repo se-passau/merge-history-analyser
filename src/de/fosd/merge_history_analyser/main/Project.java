@@ -34,9 +34,6 @@ public class Project {
     @XStreamAsAttribute
     private String name;
 
-    @XStreamOmitField
-    private String localPath;
-
     @XStreamAlias("url")
     @XStreamAsAttribute
     private String remotePath;
@@ -59,15 +56,14 @@ public class Project {
     @XStreamOmitField
     StringBuilder logger;
 
-    public Project(String localPath, String remotePath, String buildScript, boolean verbose) {
+    public Project(String localPath, String remotePath, String buildCommand, boolean verbose) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
 
         name = localPath.substring(localPath.lastIndexOf("/") + 1);
-        this.localPath = localPath;
         this.remotePath = remotePath;
-        this.buildCommand = "./" + buildScript;
+        this.buildCommand = buildCommand;
         this.verbose = verbose;
         this.logger = new StringBuilder();
         mergeScenarios = new LinkedList<>();
@@ -215,7 +211,6 @@ public class Project {
      * @return list of analysed MergeScenarios
      */
     public List<MergeScenario> analyseMergeScenarios(List<RevCommit> mergeCommits) {
-        log(mergeCommits.size() + " Merges found totally");
         log("Analysing " + mergeCommits.size() + " merges");
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < mergeCommits.size(); i++) {
@@ -255,7 +250,8 @@ public class Project {
             }
         }
 
-        //Tests
+        //Test
+        //TODO Test
 
         return mergeScenario;
     }
