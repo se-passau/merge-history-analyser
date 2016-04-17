@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd /home/martin/hiwi_job/projekte/voldemort/
+cd "$1"
+
 if [ -e "gradlew" ]
 then
     ./gradlew clean jar

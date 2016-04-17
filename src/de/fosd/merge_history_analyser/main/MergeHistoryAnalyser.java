@@ -113,7 +113,16 @@ public class MergeHistoryAnalyser {
                     }
                 }
 
-                Project project = new Project(cmd.getOptionValue("l"), cmd.getOptionValue("r"), buildScript, !cmd.hasOption("nv"));
+                //Check local Repo
+                String localRepoPath;
+                File localRepoFile = new File(cmd.getOptionValue("l"));
+                if(localRepoFile.exists()) {
+                    localRepoPath = localRepoFile.getAbsolutePath();
+                } else {
+                    throw new IllegalArgumentException("Specified local path does not exist");
+                }
+
+                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScript, !cmd.hasOption("nv"));
                 String start = cmd.getOptionValue("f");
                 String end = cmd.getOptionValue("t");
 

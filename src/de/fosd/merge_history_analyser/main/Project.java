@@ -39,6 +39,9 @@ public class Project {
     private String remotePath;
 
     @XStreamOmitField
+    private String localPath;
+
+    @XStreamOmitField
     private Repository localRepo;
 
     @XStreamOmitField
@@ -60,9 +63,9 @@ public class Project {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
-
-        name = localPath.substring(localPath.lastIndexOf("/") + 1);
+        this.name = localPath.substring(localPath.lastIndexOf("/") + 1);
         this.remotePath = remotePath;
+        this.localPath = localPath;
         this.buildCommand = buildCommand;
         this.verbose = verbose;
         this.logger = new StringBuilder();
@@ -292,7 +295,7 @@ public class Project {
         Process p2;
         Build build = new Build();
         try {
-            p2 = Runtime.getRuntime().exec(buildCommand);
+            p2 = Runtime.getRuntime().exec(buildCommand + " " + localPath);
             p2.waitFor();
             String buildMessage = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
 

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd /home/martin/hiwi_job/projekte/RxJava
+cd "$1"
+
 if [ -e "gradlew" ]
 then
     git apply gradle.patch
