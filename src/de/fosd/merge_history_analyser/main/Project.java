@@ -51,7 +51,7 @@ public class Project {
     private List<MergeScenario> mergeScenarios;
 
     @XStreamAsAttribute
-    private String buildCommand;
+    private String buildScript;
 
     @XStreamOmitField
     private boolean verbose;
@@ -59,14 +59,14 @@ public class Project {
     @XStreamOmitField
     StringBuilder logger;
 
-    public Project(String localPath, String remotePath, String buildCommand, boolean verbose) {
+    public Project(String localPath, String remotePath, String buildScript, boolean verbose) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
         this.name = localPath.substring(localPath.lastIndexOf("/") + 1);
         this.remotePath = remotePath;
         this.localPath = localPath;
-        this.buildCommand = buildCommand;
+        this.buildScript = buildScript;
         this.verbose = verbose;
         this.logger = new StringBuilder();
         mergeScenarios = new LinkedList<>();
@@ -245,7 +245,7 @@ public class Project {
         mergeScenario.setMerge(merge(mergeCommit));
 
         //Build
-        if (buildCommand != null) {
+        if (buildScript != null) {
             if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
                 mergeScenario.setBuild(new Build("NOT BUILD BECAUSE OF CONFLICT", 0));
             } else {
@@ -295,7 +295,8 @@ public class Project {
         Process p2;
         Build build = new Build();
         try {
-            p2 = Runtime.getRuntime().exec(buildCommand + " " + localPath);
+            String completeCommand = buildScript + " " + localPath;
+            p2 = Runtime.getRuntime().exec(completeCommand);
             p2.waitFor();
             String buildMessage = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
 
