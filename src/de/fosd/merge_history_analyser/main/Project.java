@@ -242,9 +242,12 @@ public class Project {
 
         //TODO support other merge tools
         //Merge
+        log("\tStart Merge");
         mergeScenario.setMerge(merge(mergeCommit));
+        log("\tFinish Merge");
 
         //Build
+        log("\tStart Build");
         if (buildScript != null) {
             if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
                 mergeScenario.setBuild(new Build("NOT BUILD BECAUSE OF CONFLICT", 0));
@@ -252,6 +255,7 @@ public class Project {
                 mergeScenario.setBuild(build());
             }
         }
+        log("\tFinish Build");
 
         //Test
         //TODO Test

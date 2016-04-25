@@ -11,10 +11,10 @@ import java.util.Arrays;
 import java.util.List;
 
 //        RxJava
-//        -l "/home/martin/hiwi_job/projekte/RxJava" -r "https://github.com/ReactiveX/RxJava" -b "./buildRxJava.sh"
+//        -l "/home/martin/hiwi_job/projekte/RxJava" -r "https://github.com/ReactiveX/RxJava" -b "scripts/build/buildRxJava.sh"
 
 //        Voldemort
-//        -l "/home/martin/hiwi_job/projekte/voldemort" -r "https://github.com/voldemort/voldemort.git" -b "./buildVoldemort.sh"
+//        -l "/home/martin/hiwi_job/projekte/voldemort" -r "https://github.com/voldemort/voldemort.git" -b "scripts/build/buildVoldemort.sh"
 
 
 /**
@@ -80,7 +80,7 @@ public class MergeHistoryAnalyser {
                 new HelpFormatter().printHelp("java ", options);
             } else {
                 //Check for build script
-                String buildScript = null;
+                String buildScriptPath = null;
                 String projectName = cmd.getOptionValue("l").substring(cmd.getOptionValue("l").lastIndexOf("/") + 1).toLowerCase();
                 File searchPath = new File("scripts/build/");
                 if(!cmd.hasOption("nb")) {
@@ -89,26 +89,26 @@ public class MergeHistoryAnalyser {
                         if(optionB.isDirectory()) {
                             searchPath = optionB;
                         } else {
-                            buildScript = cmd.getOptionValue("b");
+                            buildScriptPath = cmd.getOptionValue("b");
                         }
                     }
                     //buildscript not jet set because option "b" was directory or not set -> Search in folder
-                    if(buildScript == null) {
+                    if(buildScriptPath == null) {
                         for (String file : searchPath.list()) {
                             if (file.toLowerCase().contains(projectName)) {
-                                buildScript = searchPath.toString() + "/" + file;
+                                buildScriptPath = searchPath.toString() + "/" + file;
                             }
                         }
                     }
                     //no buildscript found
-                    if(buildScript == null) {
+                    if(buildScriptPath == null) {
                         //TODO log
                     } else {
-                        File buildFile = new File(buildScript);
+                        File buildFile = new File(buildScriptPath);
                         if(!buildFile.exists()) {
                             throw new IllegalArgumentException("Specified buildscript does not exist");
                         } else {
-                            buildScript = buildFile.getAbsolutePath();
+                            buildScriptPath = buildFile.getAbsolutePath();
                         }
                     }
                 }
@@ -122,7 +122,7 @@ public class MergeHistoryAnalyser {
                     throw new IllegalArgumentException("Specified local path does not exist");
                 }
 
-                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScript, !cmd.hasOption("nv"));
+                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, !cmd.hasOption("nv"));
                 String start = cmd.getOptionValue("f");
                 String end = cmd.getOptionValue("t");
 
