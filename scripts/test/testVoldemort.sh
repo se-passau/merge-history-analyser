@@ -6,6 +6,7 @@ cd "$1" || exit 1
 
 if [ -e "gradlew" ]
 then
+    ./gradlew cleanTest
     ./gradlew test
     ./gradlew collectResults
 else

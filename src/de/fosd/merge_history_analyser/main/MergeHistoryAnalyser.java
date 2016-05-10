@@ -24,7 +24,7 @@ public class MergeHistoryAnalyser {
 
     public static String searchFile(File directory, String buzzword) {
         for (File file : directory.listFiles()) {
-            if (!file.getName().toLowerCase().contains(buzzword)) {
+            if (file.getName().toLowerCase().contains(buzzword)) {
                 return file.getAbsolutePath();
             }
         }
@@ -128,7 +128,7 @@ public class MergeHistoryAnalyser {
                             throw new IllegalArgumentException("Specified path does not contain suited build-script");
                         }
                     } else {
-                        buildScriptPath = searchFile(new File("scripts/test"), projectName);
+                        buildScriptPath = searchFile(new File("scripts/build"), projectName);
                     }
                 }
 
