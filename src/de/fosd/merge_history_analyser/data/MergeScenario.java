@@ -17,7 +17,7 @@ public class MergeScenario {
 
     private Merge merge;
     private Build build;
-
+    private Tests tests;
 
     public MergeScenario(String commit, String parent1, String parent2) {
         this.commit = commit;
@@ -26,6 +26,7 @@ public class MergeScenario {
         merge = new Merge();
         build = new Build();
     }
+
 
     public Merge getMerge() {
         return merge;
@@ -41,5 +42,13 @@ public class MergeScenario {
 
     public void setBuild(Build build) {
         this.build = build;
+    }
+
+    public Tests getTests() {
+        return tests;
+    }
+
+    public void setTests(Tests tests) {
+        this.tests = tests;
     }
 }

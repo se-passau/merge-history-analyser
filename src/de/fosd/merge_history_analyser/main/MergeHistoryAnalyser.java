@@ -22,6 +22,15 @@ import java.util.List;
  */
 public class MergeHistoryAnalyser {
 
+    public static String searchFile(File directory, String buzzword) {
+        for (File file : directory.listFiles()) {
+            if (!file.getName().toLowerCase().contains(buzzword)) {
+                return file.getAbsolutePath();
+            }
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
@@ -40,21 +49,6 @@ public class MergeHistoryAnalyser {
                 .hasArg()
                 .build());
 
-        OptionGroup buildGroup = new OptionGroup();
-
-        buildGroup.addOption(Option.builder("b")
-                .longOpt("build-script")
-                .desc("Path to the script used to build the project")
-                .hasArg()
-                .build());
-
-        buildGroup.addOption(Option.builder("nb")
-                .longOpt("no-build")
-                .desc("Skip build step")
-                .build());
-
-        options.addOptionGroup(buildGroup);
-
         options.addOption(Option.builder("f")
                 .longOpt("from")
                 .desc("Skip all merges before a specified commit")
@@ -66,6 +60,41 @@ public class MergeHistoryAnalyser {
                 .desc("Skip all merges after a specified commit")
                 .hasArg()
                 .build());
+
+        OptionGroup buildGroup = new OptionGroup();
+        buildGroup.addOption(Option.builder("bs")
+                .longOpt("build-script")
+                .desc("Path to the script used to build the project")
+                .hasArg()
+                .build());
+        buildGroup.addOption(Option.builder("bd")
+                .longOpt("build-directory")
+                .desc("Path to the directory where a build-script will be searched")
+                .hasArg()
+                .build());
+        buildGroup.addOption(Option.builder("nb")
+                .longOpt("no-build")
+                .desc("Skip build step, otherwise build-script will be search in scripts/build")
+                .build());
+        options.addOptionGroup(buildGroup);
+
+        OptionGroup testGroup = new OptionGroup();
+        testGroup.addOption(Option.builder("ts")
+                .longOpt("test-script")
+                .desc("Path to the script used to test the project")
+                .hasArg()
+                .build());
+        testGroup.addOption(Option.builder("td")
+                .longOpt("test-directory")
+                .desc("Path to the directory where a test-script will be searched")
+                .hasArg()
+                .build());
+        testGroup.addOption(Option.builder("nt")
+                .longOpt("no-test")
+                .desc("Skip test step, otherwise test-script will be search in scripts/test")
+                .build());
+        options.addOptionGroup(testGroup);
+
 
         options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
         options.addOption("nv", "non-verbose", false, "Quiet output");
@@ -79,50 +108,62 @@ public class MergeHistoryAnalyser {
             if (cmd.hasOption("h")) {
                 new HelpFormatter().printHelp("java ", options);
             } else {
+                String projectName = cmd.getOptionValue("l").substring(cmd.getOptionValue("l").lastIndexOf("/") + 1).toLowerCase();
+
                 //Check for build script
                 String buildScriptPath = null;
-                String projectName = cmd.getOptionValue("l").substring(cmd.getOptionValue("l").lastIndexOf("/") + 1).toLowerCase();
-                File searchPath = new File("scripts/build/");
-                if(!cmd.hasOption("nb")) {
-                    if(cmd.hasOption("b")) {
-                        File optionB = new File(cmd.getOptionValue("b"));
-                        if(optionB.isDirectory()) {
-                            searchPath = optionB;
+                if (!cmd.hasOption("nb")) {
+                    if (cmd.hasOption("bs")) {
+                        File optionB = new File(cmd.getOptionValue("bs"));
+                        if (optionB.exists() && optionB.isFile()) {
+                            buildScriptPath = optionB.getAbsolutePath();
                         } else {
-                            buildScriptPath = cmd.getOptionValue("b");
+                            throw new IllegalArgumentException("Specified build-script does not exist");
                         }
-                    }
-                    //buildscript not jet set because option "b" was directory or not set -> Search in folder
-                    if(buildScriptPath == null) {
-                        for (String file : searchPath.list()) {
-                            if (file.toLowerCase().contains(projectName)) {
-                                buildScriptPath = searchPath.toString() + "/" + file;
-                            }
+                    } else if (cmd.hasOption("bd")) {
+                        File optionB = new File(cmd.getOptionValue("td"));
+                        if (optionB.exists() && optionB.isDirectory()) {
+                            buildScriptPath = searchFile(optionB, projectName);
+                        } else {
+                            throw new IllegalArgumentException("Specified path does not contain suited build-script");
                         }
-                    }
-                    //no buildscript found
-                    if(buildScriptPath == null) {
-                        //TODO log
                     } else {
-                        File buildFile = new File(buildScriptPath);
-                        if(!buildFile.exists()) {
-                            throw new IllegalArgumentException("Specified buildscript does not exist");
+                        buildScriptPath = searchFile(new File("scripts/test"), projectName);
+                    }
+                }
+
+                //Check for test script
+                String testScriptPath = null;
+                if (!cmd.hasOption("nt")) {
+                    if (cmd.hasOption("ts")) {
+                        File optionB = new File(cmd.getOptionValue("ts"));
+                        if (optionB.exists() && optionB.isFile()) {
+                            testScriptPath = optionB.getAbsolutePath();
                         } else {
-                            buildScriptPath = buildFile.getAbsolutePath();
+                            throw new IllegalArgumentException("Specified test-script does not exist");
                         }
+                    } else if (cmd.hasOption("td")) {
+                        File optionB = new File(cmd.getOptionValue("td"));
+                        if (optionB.exists() && optionB.isDirectory()) {
+                            testScriptPath = searchFile(optionB, projectName);
+                        } else {
+                            throw new IllegalArgumentException("Specified path does not contain suited test-script");
+                        }
+                    } else {
+                        testScriptPath = searchFile(new File("scripts/test"), projectName);
                     }
                 }
 
                 //Check local Repo
                 String localRepoPath;
                 File localRepoFile = new File(cmd.getOptionValue("l"));
-                if(localRepoFile.exists()) {
+                if (localRepoFile.exists()) {
                     localRepoPath = localRepoFile.getAbsolutePath();
                 } else {
                     throw new IllegalArgumentException("Specified local path does not exist");
                 }
 
-                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, !cmd.hasOption("nv"));
+                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath, !cmd.hasOption("nv"));
                 String start = cmd.getOptionValue("f");
                 String end = cmd.getOptionValue("t");
 
@@ -142,12 +183,12 @@ public class MergeHistoryAnalyser {
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.processAnnotations(Project.class);
                 String xml = Util.formatXml(xstream.toXML(project));
-                if(cmd.hasOption("o")) {
+                if (cmd.hasOption("o")) {
                     Util.writeFile(cmd.getOptionValue("o"), xml);
                 } else {
                     Util.writeFile(project.getName() + ".xml", xml);
                 }
-                if(cmd.hasOption("log")) {
+                if (cmd.hasOption("log")) {
                     Util.writeFile(cmd.getOptionValue("log"), project.logger.toString());
                 } else {
                     Util.writeFile("log.txt", project.logger.toString());

@@ -5,10 +5,10 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import de.fosd.merge_history_analyser.data.Build;
-import de.fosd.merge_history_analyser.data.Merge;
-import de.fosd.merge_history_analyser.data.MergeScenario;
+import de.fosd.merge_history_analyser.data.*;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand;
@@ -17,6 +17,7 @@ import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
 import java.util.HashSet;
@@ -53,13 +54,16 @@ public class Project {
     @XStreamAsAttribute
     private String buildScript;
 
+    @XStreamAsAttribute
+    private String testScript;
+
     @XStreamOmitField
     private boolean verbose;
 
     @XStreamOmitField
     StringBuilder logger;
 
-    public Project(String localPath, String remotePath, String buildScript, boolean verbose) {
+    public Project(String localPath, String remotePath, String buildScript, String testScript, boolean verbose) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
@@ -67,6 +71,7 @@ public class Project {
         this.remotePath = remotePath;
         this.localPath = localPath;
         this.buildScript = buildScript;
+        this.testScript = testScript;
         this.verbose = verbose;
         this.logger = new StringBuilder();
         mergeScenarios = new LinkedList<>();
@@ -247,18 +252,25 @@ public class Project {
         log("\tFinish Merge");
 
         //Build
-        log("\tStart Build");
         if (buildScript != null) {
+            log("\tStart Build");
             if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
-                mergeScenario.setBuild(new Build("NOT BUILD BECAUSE OF CONFLICT", 0));
+                mergeScenario.setBuild(new Build("NO BUILD BECAUSE OF CONFLICT", 0));
             } else {
                 mergeScenario.setBuild(build());
             }
+            log("\tFinish Build");
         }
-        log("\tFinish Build");
 
-        //Test
-        //TODO Test
+        //Tests
+        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+            log("\tStart Tests");
+            if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
+            } else {
+                mergeScenario.setTests(test());
+            }
+            log("\tFinish Tests");
+        }
 
         return mergeScenario;
     }
@@ -270,7 +282,7 @@ public class Project {
      * @param mergeCommit commit, which merge should be performed
      * @return analysis of the merge: conflicts
      */
-    public Merge merge(RevCommit mergeCommit) {
+    private Merge merge(RevCommit mergeCommit) {
         Merge merge = new Merge();
         try {
             git.checkout().setName(mergeCommit.getParents()[0].getName()).call();
@@ -295,7 +307,7 @@ public class Project {
      *
      * @return analysis of the build: state (success/fail), runtime
      */
-    public Build build() {
+    private Build build() {
         Process p2;
         Build build = new Build();
         try {
@@ -323,19 +335,35 @@ public class Project {
             }
         } catch (IOException e) {
             build.setState("IO Exception");
-            log("ERROR while building: IO Exception");
+            log(e.getMessage());
         } catch (InterruptedException e) {
             build.setState("Interrupted Exception");
-            log("ERROR while building: Interrupted Exception");
+            log(e.getMessage());
         }
-
         return build;
+    }
+
+    private Tests test() {
+        Tests tests = new Tests();
+        Process p;
+        try {
+            p = Runtime.getRuntime().exec(testScript + " " + localPath);
+            p.waitFor();
+            FileReader fileReader = new FileReader(localPath + "/build/reports/summary.csv");
+            for (CSVRecord record : CSVFormat.EXCEL.withHeader().parse(fileReader)) {
+                tests.addTestCase(record.get("Test"), record.get("Result"), record.get("Duration"));
+            }
+            return tests;
+        } catch (IOException | InterruptedException e) {
+            log(e.getMessage());
+        }
+        return tests;
     }
 
     /**
      * Resets the repo.
      */
-    public void checkoutMaster() {
+    private void checkoutMaster() {
         try {
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef("origin/master").call();
             git.checkout().setForce(true).setName("master").call();
@@ -344,7 +372,7 @@ public class Project {
         }
     }
 
-    public void log(String message) {
+    private void log(String message) {
         if (verbose) {
             System.out.println(message);
         }
