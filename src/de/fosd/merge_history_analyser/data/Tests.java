@@ -12,6 +12,7 @@ public class Tests {
     private int passed;
     private int skipped;
     private List<TestCase> testCases = new LinkedList<>();
+    public String message;
 
     public void addTestCase(String name, String result, String duration) {
         testCases.add(new TestCase(name, result, duration));

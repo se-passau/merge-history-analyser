@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-cat collectResults >> "$1"/build.gradle
+#cat collectResults >> "$1"/build.gradle
 
 cd "$1" || exit 1
 
-if [ -e "gradlew" ]
+if [[ -e "gradlew" ]]
 then
     ./gradlew cleanTest
     ./gradlew test
-#    ./gradlew -Dtest.single=QueryKeyResultTest test
     ./gradlew collectResults
 else
     echo NO BUILD POSSIBLE

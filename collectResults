@@ -1,3 +1,4 @@
+
 task collectResults() {
     def output = file("build/reports/summary.csv")
     doLast {

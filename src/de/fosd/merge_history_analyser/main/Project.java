@@ -17,9 +17,7 @@ import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.File;
+import java.io.*;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -345,16 +343,26 @@ public class Project {
 
     private Tests test() {
         Tests tests = new Tests();
-        Process p;
         try {
-            p = Runtime.getRuntime().exec(testScript + " " + localPath);
-            p.waitFor();
+//            p = Runtime.getRuntime().exec(testScript + " " + localPath);
+//            p.waitFor();
+
+            String line;
+            Process p = Runtime.getRuntime().exec(testScript + " " + localPath);
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = input.readLine()) != null) {
+                log("\t\t" + line);
+            }
+            input.close();
+
+//            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
+
             FileReader fileReader = new FileReader(localPath + "/build/reports/summary.csv");
             for (CSVRecord record : CSVFormat.EXCEL.withHeader().parse(fileReader)) {
                 tests.addTestCase(record.get("Test"), record.get("Result"), record.get("Duration"));
             }
             return tests;
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             log(e.getMessage());
         }
         return tests;
@@ -365,7 +373,7 @@ public class Project {
      */
     private void checkoutMaster() {
         try {
-            git.reset().setMode(ResetCommand.ResetType.HARD).setRef("origin/master").call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef("master").call();
             git.checkout().setForce(true).setName("master").call();
         } catch (GitAPIException e) {
             log(e.getMessage());
