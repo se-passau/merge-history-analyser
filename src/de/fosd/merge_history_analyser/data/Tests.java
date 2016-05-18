@@ -1,5 +1,7 @@
 package de.fosd.merge_history_analyser.data;
 
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,10 +9,18 @@ import java.util.List;
  * Created by martin on 09.05.16.
  */
 public class Tests {
+    @XStreamAsAttribute
     private int total;
+
+    @XStreamAsAttribute
     private int failures;
+
+    @XStreamAsAttribute
     private int passed;
+
+    @XStreamAsAttribute
     private int skipped;
+
     private List<TestCase> testCases = new LinkedList<>();
     public String message;
 

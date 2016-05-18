@@ -16,6 +16,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 
 import java.io.*;
 import java.util.HashSet;
@@ -137,11 +139,11 @@ public class Project {
 
     /**
      * Returns all commits from {@param start} to {@param end} that are merge commits.
-     *
+     * <p>
      * We consider a commit as a merge commit if its number of parents is greater than 1.
      *
      * @param start skip all commits before
-     * @param end skip all commits after
+     * @param end   skip all commits after
      * @return all commits within specified range that are merges
      */
     public List<RevCommit> getMergeCommits(String start, String end) {
@@ -174,7 +176,7 @@ public class Project {
 
     /**
      * Returns all commits of the project which are merges.
-     *
+     * <p>
      * We consider a commit as a merge commit if its number of parents is greater than 1.
      *
      * @return all commits which are merges
@@ -227,7 +229,7 @@ public class Project {
             log("Finished");
         }
         long execTime = System.currentTimeMillis() - startTime;
-        log("Total time: " + TimeUnit.MILLISECONDS.toMinutes(execTime) + "m " + TimeUnit.MILLISECONDS.toSeconds(execTime) + "s");
+        log("Total time: " + execTime/60000 + "m " + execTime + "s");
         return mergeScenarios;
     }
 
@@ -263,12 +265,61 @@ public class Project {
         //Tests
         if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
             log("\tStart Tests");
-            if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
-            } else {
-                mergeScenario.setTests(test());
-            }
+            mergeScenario.setTests(test());
             log("\tFinish Tests");
         }
+
+        checkoutMaster();
+
+        //Parent 1
+        log("\tAnalyse Parent " + mergeScenario.getParent1().getCommitID());
+        try {
+            git.checkout().setName(mergeScenario.getParent1().getCommitID()).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        //Build
+        if (buildScript != null) {
+            log("\t\tStart Build");
+            mergeScenario.getParent1().setBuild(build());
+            log("\t\tFinish Build");
+        }
+
+        //Tests
+        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+            log("\t\tStart Tests");
+                mergeScenario.getParent1().setTests(test());
+            log("\t\tFinish Tests");
+        }
+
+        checkoutMaster();
+
+        //Parent 2
+        log("\t Analyse Parent " + mergeScenario.getParent2().getCommitID());
+        try {
+            git.checkout().setName(mergeScenario.getParent2().getCommitID()).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        //Build
+        if (buildScript != null) {
+            log("\t\tStart Build");
+            mergeScenario.getParent2().setBuild(build());
+            log("\t\tFinish Build");
+        }
+        //Tests
+        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+            log("\t\tStart Tests");
+            mergeScenario.getParent2().setTests(test());
+            log("\t\tFinish Tests");
+        }
+
+//        RevWalk walk = new RevWalk(repository);
+//        walk.setRevFilter(RevFilter.MERGE_BASE);
+//        walk.markStart(commit1);
+//        walk.markStart(commit2);
+//        RevCommit mergeBase = walk.next();
+
 
         return mergeScenario;
     }
@@ -344,19 +395,16 @@ public class Project {
     private Tests test() {
         Tests tests = new Tests();
         try {
-//            p = Runtime.getRuntime().exec(testScript + " " + localPath);
-//            p.waitFor();
-
             String line;
             Process p = Runtime.getRuntime().exec(testScript + " " + localPath);
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((line = input.readLine()) != null) {
-                log("\t\t" + line);
-            }
-            input.close();
+//            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//            while ((line = input.readLine()) != null) {
+//                log("\t\t" + line);
+//            }
+//            input.close();
 
 //            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
-
+            p.waitFor();
             FileReader fileReader = new FileReader(localPath + "/build/reports/summary.csv");
             for (CSVRecord record : CSVFormat.EXCEL.withHeader().parse(fileReader)) {
                 tests.addTestCase(record.get("Test"), record.get("Result"), record.get("Duration"));
@@ -364,6 +412,8 @@ public class Project {
             return tests;
         } catch (IOException e) {
             log(e.getMessage());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         return tests;
     }
