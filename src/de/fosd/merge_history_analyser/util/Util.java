@@ -25,10 +25,8 @@ public class Util {
 
     public static void writeFile(String filename, String text) {
         Writer writer = null;
-
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(filename), "utf-8"));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
             writer.write(text);
         } catch (IOException ex) {
             // report

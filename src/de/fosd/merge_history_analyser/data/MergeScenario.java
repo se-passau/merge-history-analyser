@@ -9,16 +9,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class MergeScenario {
     private String commitID;
 
+    private Merge merge;
+    private Build build;
+    private Tests tests;
 
     @XStreamAlias("parent")
     private AnalysedCommit parent1;
 
     @XStreamAlias("parent")
     private AnalysedCommit parent2;
-
-    private Merge merge;
-    private Build build;
-    private Tests tests;
 
     public MergeScenario(String commit, String parent1ID, String parent2ID) {
         this.commitID = commit;

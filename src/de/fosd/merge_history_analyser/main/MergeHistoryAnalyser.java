@@ -2,6 +2,7 @@ package de.fosd.merge_history_analyser.main;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
+import de.fosd.merge_history_analyser.util.Logger;
 import de.fosd.merge_history_analyser.util.Util;
 import org.apache.commons.cli.*;
 
@@ -163,10 +164,17 @@ public class MergeHistoryAnalyser {
                     throw new IllegalArgumentException("Specified local path does not exist");
                 }
 
-                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath, !cmd.hasOption("nv"));
+                //Init logging
+                if (cmd.hasOption("log")) {
+                    Logger.init(cmd.getOptionValue("log"), !cmd.hasOption("nv"));
+                } else {
+                    Logger.init("log_" + projectName + ".txt", !cmd.hasOption("nv"));
+                }
+
+                //START ANALYSE
+                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath);
                 String start = cmd.getOptionValue("f");
                 String end = cmd.getOptionValue("t");
-
                 if (cmd.hasOption("f") || cmd.hasOption("t")) {
                     try {
                         //Interpret FROM TO as numbers
@@ -188,11 +196,9 @@ public class MergeHistoryAnalyser {
                 } else {
                     Util.writeFile(project.getName() + ".xml", xml);
                 }
-                if (cmd.hasOption("log")) {
-                    Util.writeFile(cmd.getOptionValue("log"), project.logger.toString());
-                } else {
-                    Util.writeFile("log.txt", project.logger.toString());
-                }
+
+                //Close logger
+                Logger.close();
             }
         } catch (ParseException e) {
             new HelpFormatter().printHelp("java ", options);

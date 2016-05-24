@@ -7,6 +7,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import de.fosd.merge_history_analyser.data.*;
 
+import de.fosd.merge_history_analyser.util.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.eclipse.jgit.api.Git;
@@ -57,13 +58,7 @@ public class Project {
     @XStreamAsAttribute
     private String testScript;
 
-    @XStreamOmitField
-    private boolean verbose;
-
-    @XStreamOmitField
-    StringBuilder logger;
-
-    public Project(String localPath, String remotePath, String buildScript, String testScript, boolean verbose) {
+    public Project(String localPath, String remotePath, String buildScript, String testScript) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
@@ -72,8 +67,6 @@ public class Project {
         this.localPath = localPath;
         this.buildScript = buildScript;
         this.testScript = testScript;
-        this.verbose = verbose;
-        this.logger = new StringBuilder();
         mergeScenarios = new LinkedList<>();
         //init
         try {
@@ -107,7 +100,9 @@ public class Project {
         checkoutMaster();
         List<RevCommit> mergeCommits = getMergeCommits();
         List<RevCommit> mergeCommitsToBeAnalysed =
-                mergeCommits.stream().filter(commit -> commitIDs.contains(commit.getId().name())).collect(Collectors.toCollection(LinkedList::new));
+                mergeCommits.stream()
+                        .filter(commit -> commitIDs.contains(commit.getId().name()))
+                        .collect(Collectors.toCollection(LinkedList::new));
         this.mergeScenarios = analyseMergeScenarios(mergeCommitsToBeAnalysed);
         checkoutMaster();
     }
@@ -228,8 +223,8 @@ public class Project {
             mergeScenarios.add(mergeScenario);
             log("Finished");
         }
-        long execTime = System.currentTimeMillis() - startTime;
-        log("Total time: " + execTime/60000 + "m " + execTime + "s");
+        long execTimeSeconds = (System.currentTimeMillis() - startTime) / 1000;
+        log("Total time: " + execTimeSeconds/60 + "m " + ((int)execTimeSeconds%60) + "s");
         return mergeScenarios;
     }
 
@@ -431,9 +426,6 @@ public class Project {
     }
 
     private void log(String message) {
-        if (verbose) {
-            System.out.println(message);
-        }
-        logger.append(message).append("\n");
+        Logger.log(message);
     }
 }

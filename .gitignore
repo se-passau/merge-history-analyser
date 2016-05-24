@@ -13,10 +13,14 @@
 *.xml
 
 #log output
-log.txt
+log*
 
 #Artifacts
 /src/main/java/META-INF/*
 
 #vim
 *.swp
+
+
+
+src/Test.java
