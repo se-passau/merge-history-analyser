@@ -309,6 +309,28 @@ public class Project {
             log("\t\tFinish Tests");
         }
 
+        //Pushed
+        log("\t Analyse Pushed " + mergeCommit.getName());
+        try {
+            git.checkout().setName(mergeCommit.getName()).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        //Build
+        if (buildScript != null) {
+            log("\t\tStart Build");
+            mergeScenario.getPushed().setBuild(build());
+            log("\t\tFinish Build");
+        }
+        //Tests
+        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+            log("\t\tStart Tests");
+            mergeScenario.getPushed().setTests(test());
+            log("\t\tFinish Tests");
+        }
+
+
+        //TODO analyse base commit
 //        RevWalk walk = new RevWalk(repository);
 //        walk.setRevFilter(RevFilter.MERGE_BASE);
 //        walk.markStart(commit1);
@@ -360,7 +382,8 @@ public class Project {
             p2.waitFor();
             String buildMessage = org.apache.commons.io.IOUtils.toString(p2.getInputStream());
 
-            //Build Message
+            //TODO generalize
+            //Handle Build Message
             build.setState("UNKNOWN");
             if (buildMessage.contains("NO BUILD POSSIBLE")) {
                 build.setState("NO BUILD POSSIBLE");
@@ -372,7 +395,7 @@ public class Project {
                     build.setState("FAILED");
                 }
             }
-            //Runtime
+            //Read Runtime
             if (buildMessage.contains("Total time")) {
                 String rawTime = buildMessage.substring(buildMessage.lastIndexOf("Total time: ") + 12);
                 build.setRuntime(Double.parseDouble(rawTime.split(" ")[0]));

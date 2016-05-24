@@ -19,6 +19,8 @@ public class MergeScenario {
     @XStreamAlias("parent")
     private AnalysedCommit parent2;
 
+    private AnalysedCommit pushed;
+
     public MergeScenario(String commit, String parent1ID, String parent2ID) {
         this.commitID = commit;
         this.parent1 = new AnalysedCommit(parent1ID);
@@ -27,10 +29,10 @@ public class MergeScenario {
         build = new Build();
     }
 
-
     public Merge getMerge() {
         return merge;
     }
+
 
     public void setMerge(Merge merge) {
         this.merge = merge;
@@ -66,5 +68,13 @@ public class MergeScenario {
 
     public void setParent2(AnalysedCommit parent2) {
         this.parent2 = parent2;
+    }
+
+    public AnalysedCommit getPushed() {
+        return pushed;
+    }
+
+    public void setPushed(AnalysedCommit pushed) {
+        this.pushed = pushed;
     }
 }

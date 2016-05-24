@@ -21,6 +21,4 @@ log*
 #vim
 *.swp
 
-
-
 src/Test.java
