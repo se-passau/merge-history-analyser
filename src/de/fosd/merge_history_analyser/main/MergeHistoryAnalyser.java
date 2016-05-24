@@ -165,11 +165,7 @@ public class MergeHistoryAnalyser {
                 }
 
                 //Init logging
-                if (cmd.hasOption("log")) {
-                    Logger.init(cmd.getOptionValue("log"), !cmd.hasOption("nv"));
-                } else {
-                    Logger.init("log_" + projectName + ".txt", !cmd.hasOption("nv"));
-                }
+                Logger.init((cmd.hasOption("log") ? cmd.getOptionValue("log") : ("log_" + projectName + ".txt")), !cmd.hasOption("nv"));
 
                 //START ANALYSE
                 Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath);
@@ -191,11 +187,7 @@ public class MergeHistoryAnalyser {
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.processAnnotations(Project.class);
                 String xml = Util.formatXml(xstream.toXML(project));
-                if (cmd.hasOption("o")) {
-                    Util.writeFile(cmd.getOptionValue("o"), xml);
-                } else {
-                    Util.writeFile(project.getName() + ".xml", xml);
-                }
+                Util.writeFile(cmd.hasOption("o") ? cmd.getOptionValue("o") : project.getName() + ".xml", xml);
 
                 //Close logger
                 Logger.close();
