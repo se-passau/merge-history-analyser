@@ -218,7 +218,7 @@ public class Project {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < mergeCommits.size(); i++) {
             RevCommit commit = mergeCommits.get(i);
-            log("Working on " + (i + 1) + "/" + mergeCommits.size() + "   " + commit.getId().getName());
+            log("Working on " + (i + 1) + "/" + mergeCommits.size() + " " + commit.getId().getName());
             MergeScenario mergeScenario = analyseMergeScenario(commit);
             mergeScenarios.add(mergeScenario);
             log("Finished");
@@ -308,6 +308,8 @@ public class Project {
             mergeScenario.getParent2().setTests(test());
             log("\t\tFinish Tests");
         }
+
+        checkoutMaster();
 
         //Pushed
         log("\t Analyse Pushed " + mergeCommit.getName());

@@ -17,7 +17,7 @@ import java.util.List;
 //        Voldemort
 //        -l "/home/martin/hiwi_job/projekte/voldemort" -r "https://github.com/voldemort/voldemort.git" -b "scripts/build/buildVoldemort.sh"
 
-
+//TODO move local repos to ram disk for faster build and test
 /**
  * @author Martin Gruber
  */
@@ -111,6 +111,7 @@ public class MergeHistoryAnalyser {
             } else {
                 String projectName = cmd.getOptionValue("l").substring(cmd.getOptionValue("l").lastIndexOf("/") + 1).toLowerCase();
 
+                //TODO log buildscript and testscript
                 //Check for build script
                 String buildScriptPath = null;
                 if (!cmd.hasOption("nb")) {

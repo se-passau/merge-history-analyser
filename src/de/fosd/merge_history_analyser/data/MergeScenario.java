@@ -21,10 +21,11 @@ public class MergeScenario {
 
     private AnalysedCommit pushed;
 
-    public MergeScenario(String commit, String parent1ID, String parent2ID) {
-        this.commitID = commit;
+    public MergeScenario(String commitID, String parent1ID, String parent2ID) {
+        this.commitID = commitID;
         this.parent1 = new AnalysedCommit(parent1ID);
         this.parent2 = new AnalysedCommit(parent2ID);
+        this.pushed = new AnalysedCommit(commitID);
         merge = new Merge();
         build = new Build();
     }
