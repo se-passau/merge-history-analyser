@@ -14,23 +14,21 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.filter.RevFilter;
 
 import java.io.*;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * @author Martin Gruber
  */
+@XStreamAlias("Project")
 public class Project {
 
     @XStreamAsAttribute
@@ -63,18 +61,18 @@ public class Project {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
         this.name = localPath.substring(localPath.lastIndexOf("/") + 1);
-        this.remotePath = remotePath;
         this.localPath = localPath;
         this.buildScript = buildScript;
         this.testScript = testScript;
         mergeScenarios = new LinkedList<>();
         //init
         try {
-            localRepo = new FileRepository(localPath + "/.git");
+            localRepo = new RepositoryBuilder().findGitDir(new File(localPath)).build();
             git = new Git(localRepo);
         } catch (IOException e) {
             log(e.getMessage());
         }
+        this.remotePath = localRepo.getConfig().getString("remote", "origin", "url");
     }
 
     public String getName() {

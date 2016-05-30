@@ -43,7 +43,6 @@ public class MergeHistoryAnalyser {
                 .required()
                 .build());
 
-        //TODO search for url in .git folder
         options.addOption(Option.builder("r")
                 .longOpt("remote-repo")
                 .desc("The url to the repository")
