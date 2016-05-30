@@ -7,17 +7,7 @@ import de.fosd.merge_history_analyser.util.Util;
 import org.apache.commons.cli.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-//        RxJava
-//        -l "/home/martin/hiwi_job/projekte/RxJava" -r "https://github.com/ReactiveX/RxJava" -b "scripts/build/buildRxJava.sh"
-
-//        Voldemort
-//        -l "/home/martin/hiwi_job/projekte/voldemort" -r "https://github.com/voldemort/voldemort.git" -b "scripts/build/buildVoldemort.sh"
-
-//TODO move local repos to ram disk for faster build and test
 /**
  * @author Martin Gruber
  */
