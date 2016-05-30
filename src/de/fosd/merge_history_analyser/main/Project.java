@@ -72,7 +72,7 @@ public class Project {
         } catch (IOException e) {
             log(e.getMessage());
         }
-        this.remotePath = localRepo.getConfig().getString("remote", "origin", "url");
+        this.remotePath = remotePath != null ? remotePath : localRepo.getConfig().getString("remote", "origin", "url");
     }
 
     public String getName() {

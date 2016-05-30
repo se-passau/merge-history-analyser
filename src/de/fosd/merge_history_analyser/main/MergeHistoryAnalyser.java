@@ -45,7 +45,7 @@ public class MergeHistoryAnalyser {
 
         options.addOption(Option.builder("r")
                 .longOpt("remote-repo")
-                .desc("The url to the repository")
+                .desc("The url to the repository. Just for documentation, not necessary.")
                 .hasArg()
                 .build());
 
@@ -74,7 +74,7 @@ public class MergeHistoryAnalyser {
                 .build());
         buildGroup.addOption(Option.builder("nb")
                 .longOpt("no-build")
-                .desc("Skip build step, otherwise build-script will be search in scripts/build")
+                .desc("Skip build step, otherwise build-script will be searched in scripts/build")
                 .build());
         options.addOptionGroup(buildGroup);
 
@@ -91,7 +91,7 @@ public class MergeHistoryAnalyser {
                 .build());
         testGroup.addOption(Option.builder("nt")
                 .longOpt("no-test")
-                .desc("Skip test step, otherwise test-script will be search in scripts/test")
+                .desc("Skip test step, otherwise test-script will be searched in scripts/test")
                 .build());
         options.addOptionGroup(testGroup);
 
@@ -110,7 +110,9 @@ public class MergeHistoryAnalyser {
             } else {
                 String projectName = cmd.getOptionValue("l").substring(cmd.getOptionValue("l").lastIndexOf("/") + 1).toLowerCase();
 
-                //TODO log buildscript and testscript
+                //Init logging
+                Logger.init((cmd.hasOption("log") ? cmd.getOptionValue("log") : ("log_" + projectName + ".txt")), !cmd.hasOption("nv"));
+
                 //Check for build script
                 String buildScriptPath = null;
                 if (!cmd.hasOption("nb")) {
@@ -119,6 +121,7 @@ public class MergeHistoryAnalyser {
                         if (optionB.exists() && optionB.isFile()) {
                             buildScriptPath = optionB.getAbsolutePath();
                         } else {
+                            Logger.log("Specified build-script does not exist");
                             throw new IllegalArgumentException("Specified build-script does not exist");
                         }
                     } else if (cmd.hasOption("bd")) {
@@ -126,12 +129,22 @@ public class MergeHistoryAnalyser {
                         if (optionB.exists() && optionB.isDirectory()) {
                             buildScriptPath = searchFile(optionB, projectName);
                         } else {
-                            throw new IllegalArgumentException("Specified path does not contain suited build-script");
+                            Logger.log("Argument of option -bd has to be a directory");
+                            throw new IllegalArgumentException("Argument of option -bd has to be a directory");
                         }
                     } else {
+                        Logger.log("Automatically search build-script in scripts/build");
                         buildScriptPath = searchFile(new File("scripts/build"), projectName);
                     }
+                    if(buildScriptPath == null) {
+                        Logger.log("No build-script found");
+                    } else {
+                        Logger.log("Using build-script: " + buildScriptPath);
+                    }
+                } else {
+                    Logger.log("Build disabled");
                 }
+                Logger.log("");
 
                 //Check for test script
                 String testScriptPath = null;
@@ -141,6 +154,7 @@ public class MergeHistoryAnalyser {
                         if (optionB.exists() && optionB.isFile()) {
                             testScriptPath = optionB.getAbsolutePath();
                         } else {
+                            Logger.log("Specified test-script does not exist");
                             throw new IllegalArgumentException("Specified test-script does not exist");
                         }
                     } else if (cmd.hasOption("td")) {
@@ -148,12 +162,23 @@ public class MergeHistoryAnalyser {
                         if (optionB.exists() && optionB.isDirectory()) {
                             testScriptPath = searchFile(optionB, projectName);
                         } else {
-                            throw new IllegalArgumentException("Specified path does not contain suited test-script");
+                            Logger.log("Argument of option -td has to be a directory");
+                            throw new IllegalArgumentException("Argument of option -td has to be a directory");
                         }
                     } else {
+                        Logger.log("Automatically search test-script in scripts/build");
                         testScriptPath = searchFile(new File("scripts/test"), projectName);
                     }
+                    if(buildScriptPath == null) {
+                        Logger.log("No test-script found");
+                    } else {
+                        Logger.log("Using test-script: " + buildScriptPath);
+                    }
+                } else {
+                    Logger.log("Tests disabled");
                 }
+                Logger.log("");
+
 
                 //Check local Repo
                 String localRepoPath;
@@ -164,8 +189,7 @@ public class MergeHistoryAnalyser {
                     throw new IllegalArgumentException("Specified local path does not exist");
                 }
 
-                //Init logging
-                Logger.init((cmd.hasOption("log") ? cmd.getOptionValue("log") : ("log_" + projectName + ".txt")), !cmd.hasOption("nv"));
+
 
                 //START ANALYSE
                 Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath);
@@ -193,7 +217,7 @@ public class MergeHistoryAnalyser {
                 Logger.close();
             }
         } catch (ParseException e) {
-            new HelpFormatter().printHelp("java ", options);
+            new HelpFormatter().printHelp("java", options);
         }
     }
 }
