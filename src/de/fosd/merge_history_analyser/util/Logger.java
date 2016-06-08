@@ -7,8 +7,8 @@ import java.io.*;
  */
 public class Logger {
 
-    static Writer writer;
-    static boolean v;
+    private static Writer writer;
+    private static boolean v;
 
     public static void init(String filename, boolean verbose) {
         v = verbose;
@@ -25,7 +25,8 @@ public class Logger {
             System.out.println(message);
         }
         try {
-            writer.write(message);
+            writer.write(message+"\n");
+            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
