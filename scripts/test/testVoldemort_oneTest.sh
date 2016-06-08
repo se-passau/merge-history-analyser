@@ -7,7 +7,7 @@ cd "$1" || exit 1
 if [ -e "gradlew" ]
 then
     ./gradlew cleanTest
-    ./gradlew test
+    ./gradlew -Dtest.single=QueryKeyResultTest test
     ./gradlew collectResults
 else
     echo NO BUILD POSSIBLE
