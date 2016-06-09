@@ -140,17 +140,17 @@ public class MergeHistoryAnalyser {
                 String testScriptPath = null;
                 if (!cmd.hasOption("nt")) {
                     if (cmd.hasOption("ts")) {
-                        File optionB = new File(cmd.getOptionValue("ts"));
-                        if (optionB.exists() && optionB.isFile()) {
-                            testScriptPath = optionB.getAbsolutePath();
+                        File option = new File(cmd.getOptionValue("ts"));
+                        if (option.exists() && option.isFile()) {
+                            testScriptPath = option.getAbsolutePath();
                         } else {
                             Logger.log("Specified test-script does not exist");
                             throw new IllegalArgumentException("Specified test-script does not exist");
                         }
                     } else if (cmd.hasOption("td")) {
-                        File optionB = new File(cmd.getOptionValue("td"));
-                        if (optionB.exists() && optionB.isDirectory()) {
-                            testScriptPath = searchFile(optionB, projectName);
+                        File option = new File(cmd.getOptionValue("td"));
+                        if (option.exists() && option.isDirectory()) {
+                            testScriptPath = searchFile(option, projectName);
                         } else {
                             Logger.log("Argument of option -td has to be a directory");
                             throw new IllegalArgumentException("Argument of option -td has to be a directory");
@@ -159,10 +159,10 @@ public class MergeHistoryAnalyser {
                         Logger.log("Automatically search test-script in scripts/build");
                         testScriptPath = searchFile(new File("scripts/test"), projectName);
                     }
-                    if(buildScriptPath == null) {
+                    if(testScriptPath == null) {
                         Logger.log("No test-script found");
                     } else {
-                        Logger.log("Using test-script: " + buildScriptPath);
+                        Logger.log("Using test-script: " + testScriptPath);
                     }
                 } else {
                     Logger.log("Tests disabled");
