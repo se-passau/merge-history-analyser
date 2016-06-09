@@ -70,7 +70,7 @@ public class Project {
             localRepo = new RepositoryBuilder().findGitDir(new File(localPath)).build();
             git = new Git(localRepo);
         } catch (IOException e) {
-            log(e.getMessage());
+            Logger.log(e.getMessage());
         }
         this.remotePath = remotePath != null ? remotePath : localRepo.getConfig().getString("remote", "origin", "url");
     }
@@ -161,7 +161,7 @@ public class Project {
                 }
             }
         } catch (GitAPIException e) {
-            log(e.getMessage());
+            Logger.log(e.getMessage());
         }
 
         return merges;
@@ -212,17 +212,17 @@ public class Project {
      * @return list of analysed MergeScenarios
      */
     public List<MergeScenario> analyseMergeScenarios(List<RevCommit> mergeCommits) {
-        log("Analysing " + mergeCommits.size() + " merges");
+        Logger.log("Analysing " + mergeCommits.size() + " merges");
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < mergeCommits.size(); i++) {
             RevCommit commit = mergeCommits.get(i);
-            log("Working on " + (i + 1) + "/" + mergeCommits.size() + " " + commit.getId().getName());
+            Logger.log("Working on " + (i + 1) + "/" + mergeCommits.size() + " " + commit.getId().getName());
             MergeScenario mergeScenario = analyseMergeScenario(commit);
             mergeScenarios.add(mergeScenario);
-            log("Finished");
+            Logger.log("Finished");
         }
         long execTimeSeconds = (System.currentTimeMillis() - startTime) / 1000;
-        log("Total time: " + execTimeSeconds/60 + "m " + ((int)execTimeSeconds%60) + "s");
+        Logger.log("Total time: " + execTimeSeconds/60 + "m " + ((int)execTimeSeconds%60) + "s");
         return mergeScenarios;
     }
 
@@ -240,93 +240,93 @@ public class Project {
 
         //TODO support other merge tools
         //Merge
-        log("\tStart Merge");
+        Logger.log("\tStart Merge");
         mergeScenario.setMerge(merge(mergeCommit));
-        log("\tFinish Merge");
+        Logger.log("\tFinish Merge");
 
         //Build
         if (buildScript != null) {
-            log("\tStart Build");
+            Logger.log("\tStart Build");
             if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
                 mergeScenario.setBuild(new Build("NO BUILD BECAUSE OF CONFLICT", 0));
             } else {
                 mergeScenario.setBuild(build());
             }
-            log("\tFinish Build");
+            Logger.log("\tFinish Build");
         }
 
         //Tests
         if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            log("\tStart Tests");
+            Logger.log("\tStart Tests");
             mergeScenario.setTests(test());
-            log("\tFinish Tests");
+            Logger.log("\tFinish Tests");
         }
 
         checkoutMaster();
 
         //Parent 1
-        log("\tAnalyse Parent " + mergeScenario.getParent1().getCommitID());
+        Logger.log("\tAnalyse Parent " + mergeScenario.getParent1().getCommitID());
         try {
             git.checkout().setName(mergeScenario.getParent1().getCommitID()).call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            Logger.log(e.getMessage());
         }
         //Build
         if (buildScript != null) {
-            log("\t\tStart Build");
+            Logger.log("\t\tStart Build");
             mergeScenario.getParent1().setBuild(build());
-            log("\t\tFinish Build");
+            Logger.log("\t\tFinish Build");
         }
 
         //Tests
         if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            log("\t\tStart Tests");
+            Logger.log("\t\tStart Tests");
                 mergeScenario.getParent1().setTests(test());
-            log("\t\tFinish Tests");
+            Logger.log("\t\tFinish Tests");
         }
 
         checkoutMaster();
 
         //Parent 2
-        log("\t Analyse Parent " + mergeScenario.getParent2().getCommitID());
+        Logger.log("\t Analyse Parent " + mergeScenario.getParent2().getCommitID());
         try {
             git.checkout().setName(mergeScenario.getParent2().getCommitID()).call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            Logger.log(e.getMessage());
         }
         //Build
         if (buildScript != null) {
-            log("\t\tStart Build");
+            Logger.log("\t\tStart Build");
             mergeScenario.getParent2().setBuild(build());
-            log("\t\tFinish Build");
+            Logger.log("\t\tFinish Build");
         }
         //Tests
         if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            log("\t\tStart Tests");
+            Logger.log("\t\tStart Tests");
             mergeScenario.getParent2().setTests(test());
-            log("\t\tFinish Tests");
+            Logger.log("\t\tFinish Tests");
         }
 
         checkoutMaster();
 
         //Pushed
-        log("\t Analyse Pushed " + mergeCommit.getName());
+        Logger.log("\t Analyse Pushed " + mergeCommit.getName());
         try {
             git.checkout().setName(mergeCommit.getName()).call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            Logger.log(e.getMessage());
         }
         //Build
         if (buildScript != null) {
-            log("\t\tStart Build");
+            Logger.log("\t\tStart Build");
             mergeScenario.getPushed().setBuild(build());
-            log("\t\tFinish Build");
+            Logger.log("\t\tFinish Build");
         }
         //Tests
         if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            log("\t\tStart Tests");
+            Logger.log("\t\tStart Tests");
             mergeScenario.getPushed().setTests(test());
-            log("\t\tFinish Tests");
+            Logger.log("\t\tFinish Tests");
         }
 
 
@@ -361,7 +361,7 @@ public class Project {
                 merge.setConflicts(conflicts);
             }
         } catch (GitAPIException e) {
-            log(e.getMessage());
+            Logger.log(e.getMessage());
             merge.setState("GitAPI Exception");
         }
 
@@ -402,10 +402,10 @@ public class Project {
             }
         } catch (IOException e) {
             build.setState("IO Exception");
-            log(e.getMessage());
+            Logger.log(e.getMessage());
         } catch (InterruptedException e) {
             build.setState("Interrupted Exception");
-            log(e.getMessage());
+            Logger.log(e.getMessage());
         }
         return build;
     }
@@ -428,10 +428,8 @@ public class Project {
                 tests.addTestCase(record.get("Test"), record.get("Result"), record.get("Duration"));
             }
             return tests;
-        } catch (IOException e) {
-            log(e.getMessage());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (IOException | InterruptedException e) {
+            Logger.log(e.getMessage());
         }
         return tests;
     }
@@ -444,11 +442,7 @@ public class Project {
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef("master").call();
             git.checkout().setForce(true).setName("master").call();
         } catch (GitAPIException e) {
-            log(e.getMessage());
+            Logger.log(e.getMessage());
         }
-    }
-
-    private void log(String message) {
-        Logger.log(message);
     }
 }
