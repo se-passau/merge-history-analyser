@@ -246,20 +246,25 @@ public class Project {
 
         //Build
         if (buildScript != null) {
-            Logger.log("\tStart Build");
             if (mergeScenario.getMerge().getState().equals("CONFLICTING")) {
                 mergeScenario.setBuild(new Build("NO BUILD BECAUSE OF CONFLICT", 0));
+                Logger.log("NO BUILD BECAUSE OF CONFLICT");
             } else {
+                Logger.log("\tStart Build");
                 mergeScenario.setBuild(build());
+                Logger.log("\tFinish Build");
             }
-            Logger.log("\tFinish Build");
         }
 
         //Tests
-        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            Logger.log("\tStart Tests");
-            mergeScenario.setTests(test());
-            Logger.log("\tFinish Tests");
+        if (testScript != null) {
+            if (mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+                Logger.log("\tStart Tests");
+                mergeScenario.setTests(test());
+                Logger.log("\tFinish Tests");
+            } else {
+                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+            }
         }
 
         checkoutMaster();
@@ -277,12 +282,15 @@ public class Project {
             mergeScenario.getParent1().setBuild(build());
             Logger.log("\t\tFinish Build");
         }
-
         //Tests
-        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            Logger.log("\t\tStart Tests");
-                mergeScenario.getParent1().setTests(test());
-            Logger.log("\t\tFinish Tests");
+        if (testScript != null) {
+            if (mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+                Logger.log("\t\tStart Tests");
+                    mergeScenario.getParent1().setTests(test());
+                Logger.log("\t\tFinish Tests");
+            } else {
+                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+            }
         }
 
         checkoutMaster();
@@ -301,10 +309,14 @@ public class Project {
             Logger.log("\t\tFinish Build");
         }
         //Tests
-        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            Logger.log("\t\tStart Tests");
-            mergeScenario.getParent2().setTests(test());
-            Logger.log("\t\tFinish Tests");
+        if (testScript != null) {
+            if (mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+                Logger.log("\t\tStart Tests");
+                mergeScenario.getParent2().setTests(test());
+                Logger.log("\t\tFinish Tests");
+            } else {
+                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+            }
         }
 
         checkoutMaster();
@@ -323,10 +335,14 @@ public class Project {
             Logger.log("\t\tFinish Build");
         }
         //Tests
-        if (testScript != null && mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
-            Logger.log("\t\tStart Tests");
-            mergeScenario.getPushed().setTests(test());
-            Logger.log("\t\tFinish Tests");
+        if (testScript != null) {
+            if (mergeScenario.getBuild().getState().equals("SUCCESSFUL")) {
+                Logger.log("\t\tStart Tests");
+                mergeScenario.getPushed().setTests(test());
+                Logger.log("\t\tFinish Tests");
+            } else {
+                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+            }
         }
 
 
