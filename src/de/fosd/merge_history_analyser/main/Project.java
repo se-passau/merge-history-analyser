@@ -263,7 +263,7 @@ public class Project {
                 mergeScenario.setTests(test());
                 Logger.log("\tFinish Tests");
             } else {
-                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+                Logger.log("\tNO TEST BECAUSE BUILD NOT SUCCESSFUL");
             }
         }
 
@@ -289,7 +289,7 @@ public class Project {
                     mergeScenario.getParent1().setTests(test());
                 Logger.log("\t\tFinish Tests");
             } else {
-                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+                Logger.log("\tNO TEST BECAUSE BUILD NOT SUCCESSFUL");
             }
         }
 
@@ -315,7 +315,7 @@ public class Project {
                 mergeScenario.getParent2().setTests(test());
                 Logger.log("\t\tFinish Tests");
             } else {
-                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+                Logger.log("\tNO TEST BECAUSE BUILD NOT SUCCESSFUL");
             }
         }
 
@@ -341,7 +341,7 @@ public class Project {
                 mergeScenario.getPushed().setTests(test());
                 Logger.log("\t\tFinish Tests");
             } else {
-                Logger.log("\tNO TEST BECAUSE BUILD FAILED");
+                Logger.log("\tNO TEST BECAUSE BUILD NOT SUCCESSFUL");
             }
         }
 
@@ -429,13 +429,14 @@ public class Project {
     private Tests test() {
         Tests tests = new Tests();
         try {
-            String line;
             Process p = Runtime.getRuntime().exec(testScript + " " + localPath);
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((line = input.readLine()) != null) {
-                Logger.log("\t\t" + line);
-            }
-            input.close();
+            //Log test message
+//            String line;
+//            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//            while ((line = input.readLine()) != null) {
+//                Logger.log("\t\t" + line);
+//            }
+//            input.close();
 
             tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
             p.waitFor();
