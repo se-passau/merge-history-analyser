@@ -431,13 +431,13 @@ public class Project {
         try {
             String line;
             Process p = Runtime.getRuntime().exec(testScript + " " + localPath);
-//            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//            while ((line = input.readLine()) != null) {
-//                log("\t\t" + line);
-//            }
-//            input.close();
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = input.readLine()) != null) {
+                Logger.log("\t\t" + line);
+            }
+            input.close();
 
-//            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
+            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
             p.waitFor();
             FileReader fileReader = new FileReader(localPath + "/build/reports/summary.csv");
             for (CSVRecord record : CSVFormat.EXCEL.withHeader().parse(fileReader)) {
