@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * @author Martin Gruber
  */
 @XStreamAlias("Project")
-public class Project {
+class Project {
 
     @XStreamAsAttribute
     private String name;
@@ -56,7 +56,7 @@ public class Project {
     @XStreamAsAttribute
     private String testScript;
 
-    public Project(String localPath, String remotePath, String buildScript, String testScript) {
+    Project(String localPath, String remotePath, String buildScript, String testScript) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
@@ -438,7 +438,9 @@ public class Project {
 //            }
 //            input.close();
 
-            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
+            //Include message
+//            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
+
             p.waitFor();
             FileReader fileReader = new FileReader(localPath + "/build/reports/summary.csv");
             for (CSVRecord record : CSVFormat.EXCEL.withHeader().parse(fileReader)) {
