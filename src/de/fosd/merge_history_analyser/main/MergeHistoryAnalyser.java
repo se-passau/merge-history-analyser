@@ -85,6 +85,10 @@ public class MergeHistoryAnalyser {
                 .build());
         options.addOptionGroup(testGroup);
 
+        options.addOption(Option.builder()
+                .longOpt("log-test-message")
+                .desc("Log the gradle test message")
+                .build());
 
         options.addOption("s", "merge-strategy", true, "Use the given merge strategy");
         options.addOption("nv", "non-verbose", false, "Quiet output");
@@ -156,7 +160,7 @@ public class MergeHistoryAnalyser {
                             throw new IllegalArgumentException("Argument of option -td has to be a directory");
                         }
                     } else {
-                        Logger.log("Automatically search test-script in scripts/build");
+                        Logger.log("Automatically search test-script in scripts/test");
                         testScriptPath = searchFile(new File("scripts/test"), projectName);
                     }
                     if(testScriptPath == null) {
@@ -182,7 +186,7 @@ public class MergeHistoryAnalyser {
 
 
                 //START ANALYSE
-                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath);
+                Project project = new Project(localRepoPath, cmd.getOptionValue("r"), buildScriptPath, testScriptPath, cmd.hasOption("log-test-message"));
                 String start = cmd.getOptionValue("f");
                 String end = cmd.getOptionValue("t");
                 if (cmd.hasOption("f") || cmd.hasOption("t")) {

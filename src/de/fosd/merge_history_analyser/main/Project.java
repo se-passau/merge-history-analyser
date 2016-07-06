@@ -56,7 +56,10 @@ class Project {
     @XStreamAsAttribute
     private String testScript;
 
-    Project(String localPath, String remotePath, String buildScript, String testScript) {
+    @XStreamOmitField
+    private boolean logTestMessage;
+
+    Project(String localPath, String remotePath, String buildScript, String testScript, boolean logTestMessage) {
         if (localPath == null || !(new File(localPath).isDirectory())) {
             throw new RuntimeException("Local repository does not exist: " + localPath);
         }
@@ -64,6 +67,7 @@ class Project {
         this.localPath = localPath;
         this.buildScript = buildScript;
         this.testScript = testScript;
+        this.logTestMessage = logTestMessage;
         mergeScenarios = new LinkedList<>();
         //init
         try {
@@ -431,15 +435,17 @@ class Project {
         try {
             Process p = Runtime.getRuntime().exec(testScript + " " + localPath);
             //Log test message
-//            String line;
-//            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//            while ((line = input.readLine()) != null) {
-//                Logger.log("\t\t" + line);
-//            }
-//            input.close();
+            if(logTestMessage) {
+                String line;
+                BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((line = input.readLine()) != null) {
+                    Logger.log("\t\t" + line);
+                }
+                input.close();
 
-            //Include message
-//            tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
+                //Include message to xml file
+//                tests.message = org.apache.commons.io.IOUtils.toString(p.getInputStream());
+            }
 
             p.waitFor();
             FileReader fileReader = new FileReader(localPath + "/build/reports/summary.csv");
