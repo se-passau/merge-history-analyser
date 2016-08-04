@@ -4,7 +4,6 @@
 
 #Intellij
 .idea
-*.iml
 
 #Gradle
 .gradle
@@ -22,3 +21,5 @@ log*
 *.swp
 
 src/Test.java
+tools/ztest.py
+tools/zztest.py
