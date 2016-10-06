@@ -23,3 +23,6 @@ log*
 src/Test.java
 tools/ztest.py
 tools/zztest.py
+
+# Python
+*.pyc
